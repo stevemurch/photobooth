@@ -28,16 +28,35 @@ def hideButton():
 	btn.lower()
 
 def updatePhoto():
-    print("updating image...")
     global img
-    img = ImageTk.PhotoImage(Image.open("image2.jpg"))   
-      
-    canvas.create_image(10,10, anchor=CENTER, image=img) 
+    n=1
+    same = True 
+	
+    path = "image2.jpg"
+    image = Image.open(path)
+    [imageSizeWidth, imageSizeHeight] = image.size
+    newImageSizeWidth = int(imageSizeWidth*n)
+    if same:
+        newImageSizeHeight = int(imageSizeHeight*n)
+    else:
+        newImageSizeHeight = int(imageSizeHeight/n) 
+
+    image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
+    img = ImageTk.PhotoImage(image)
+	
+	
+	
+    #print("updating image...")
+    #global img
+    #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
+    #resized = img.zoom(1000,500)
+    
+    canvas.create_image(10,10, anchor=NW, image=img) 
     canvas.grid(column=0,row=1)
     canvas.update()
 
 def takePhoto():
-	subprocess.Popen(["fswebcam", "-r","1600x800", "image2.jpg"])
+	subprocess.Popen(["fswebcam", "-r","800x600", "image2.jpg"])
 	lbl.configure(text="PHOTO SNAPPED!")
 
 def countdown():
@@ -73,9 +92,9 @@ lbl.grid(column=0, row=0)
 btn = Button(root, text="Take Photo", command=clicked)
 btn.grid(column=1, row=0)
 
-canvas = Canvas(root, width = 600, height = 600) 
+canvas = Canvas(root, width = 800, height = 600) 
 img = ImageTk.PhotoImage(Image.open("image.jpg"))      
-canvas.create_image(10,10, anchor=CENTER, image=img) 
+canvas.create_image(0,0, anchor=CENTER, image=img) 
 canvas.grid(column=0,row=1)
 
 root.mainloop()
