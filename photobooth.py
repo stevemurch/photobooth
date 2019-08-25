@@ -1,13 +1,22 @@
 # PhotoBooth
+
+# Wiring: Button, LED, Servo Motor (for shutter release), or webcam.
+
 # LED on BOARD PIN 13
+# SERVO on GPIO 17 which is board pin 11
+# servo ground to arduino ground
+# servo red power, ground to battery (and ground also to rpi ground)
 # 
 # wait for button press
 #     count down 3..2..1
+#     turn on LED
 #     snap photo
 #          move servo
 #          move servo back
+#          turn off LED 
 #          download image from camera
 #     display image on screen
+#     show QR code 
 #     resize to 3Mb or less
 #     tweet it
 #     upload to Google Photos
@@ -22,10 +31,43 @@ from time import sleep
 import subprocess
 from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
+import pigpio
 
-LED_BOARD_PIN = 13
+LED_BCM_PIN = 27 # physical pin number 13
+
+from time import sleep
+
+# servo -- use pigpio for jitter-free
+# https://steemit.com/python/@makerhacks/jitter-free-servo-control-on-the-raspberry-pi
+# note that you first have to run a daemon:
+# sudo pigpiod
+# I've already started it here with:
+# sudo systemctl enable pigpiod
 
 
+# pin numbering -- broadcom needed
+# https://gpiozero.readthedocs.io/en/stable/recipes.html#pin-numbering
+
+GPIO.setmode(GPIO.BCM) # broadcom
+
+myGPIOServo=17 # physical board pin 11
+myCorrection=0.45
+maxPW=(2.0+myCorrection)/1000
+minPW=(1.0-myCorrection)/1000
+
+pi = pigpio.pi()
+
+# light 
+GPIO.setup(LED_BCM_PIN,GPIO.OUT)
+
+def moveServo():
+    #pi.set_servo_pulsewidth(myGPIOServo, 0)    # off
+    #sleep(1)
+    pi.set_servo_pulsewidth(myGPIOServo, 1000) # position anti-clockwise
+    sleep(1)
+    pi.set_servo_pulsewidth(myGPIOServo, 1500) # middle is 1500
+    sleep(1)
+    pi.set_servo_pulsewidth(myGPIOServo, 0)    # off
 
 
 def showButton():
@@ -63,22 +105,23 @@ def updatePhoto():
     canvas.update()
 
 def flashLightOn():
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setwarnings(False)
-    GPIO.setup(LED_BOARD_PIN,GPIO.OUT)
+    #GPIO.setwarnings(False)
     print("LED on")
-    GPIO.output(LED_BOARD_PIN,GPIO.HIGH)
-
+    GPIO.output(LED_BCM_PIN,GPIO.HIGH)
 
 
 def flashLightOff():
     print("LED off")
-    GPIO.output(LED_BOARD_PIN,GPIO.LOW)
-    
+    GPIO.output(LED_BCM_PIN,GPIO.LOW)
+
 
 def takePhoto():
+    # fswebcam to snap with webcam
     subprocess.Popen(["fswebcam", "-r","800x600","--no-banner", "image2.jpg"])
     lbl.configure(text="PHOTO SNAPPED!")
+    
+    # servo based camera cable shutter
+    moveServo()
 
 def playCameraSound():
     # requires mpg321 install first
@@ -109,7 +152,6 @@ def countdown():
     updatePhoto()
     lbl.configure(text="Press the button to take a photo!")
     lbl.update()
-    
 
 def clicked():
     btn.grid_remove()
@@ -126,8 +168,6 @@ root.title("Photo Booth")
 lbl = Label(root, text="Press the button to take a photo!", font=("Arial Bold", 20))
 lbl.grid(column=0, row=0)
 
-
-
 canvas = Canvas(root, width = 800, height = 600) 
 img = ImageTk.PhotoImage(Image.open("image.jpg"))      
 canvas.create_image(0,0, anchor=CENTER, image=img) 
@@ -137,3 +177,5 @@ btn = Button(root, text="Take Photo", command=clicked)
 btn.grid(column=0, row=2)
 
 root.mainloop()
+print("Goodbye...")
+GPIO.cleanup()
