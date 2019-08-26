@@ -15,8 +15,8 @@ buttonPin = 15
 GPIO.setup(buttonPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 while True:
-    if (GPIO.input(buttonPin) == True):
-        print("")
+    if (GPIO.input(buttonPin) == False):
+        print("PRESSED",end='\r')
     else:
-        print("PRESSED!")
+        print("       ",end='\r')
     sleep(sleepTime)

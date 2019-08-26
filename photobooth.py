@@ -27,13 +27,20 @@
 #     
 
 from tkinter import *
+import time 
 from time import sleep
 import subprocess
 from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import pigpio
 
+GPIO.setmode(GPIO.BCM) # broadcom
+
 LED_BCM_PIN = 27 # physical pin number 13
+sleepTime = 0.1
+
+BUTTON_BCM_PIN = 22 # physical pin 15
+
 
 from time import sleep
 
@@ -48,7 +55,7 @@ from time import sleep
 # pin numbering -- broadcom needed
 # https://gpiozero.readthedocs.io/en/stable/recipes.html#pin-numbering
 
-GPIO.setmode(GPIO.BCM) # broadcom
+
 
 myGPIOServo=17 # physical board pin 11
 myCorrection=0.45
@@ -58,7 +65,13 @@ minPW=(1.0-myCorrection)/1000
 pi = pigpio.pi()
 
 # light 
-GPIO.setup(LED_BCM_PIN,GPIO.OUT)
+GPIO.setup(LED_BCM_PIN, GPIO.OUT)
+# start button
+# set the default to high, pull up on default
+GPIO.setup(BUTTON_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+photoProcessingState = 0 # 0=not set, 1=initializing, 2=ready for button, 3=processing
+
 
 def moveServo():
     #pi.set_servo_pulsewidth(myGPIOServo, 0)    # off
@@ -77,6 +90,9 @@ def hideButton():
     btn.lower()
 
 def updatePhoto():
+    global photoProcessingState
+    photoProcessingState = 1
+    
     global img
     n=1
     same = True 
@@ -107,12 +123,12 @@ def updatePhoto():
 def flashLightOn():
     #GPIO.setwarnings(False)
     print("LED on")
-    GPIO.output(LED_BCM_PIN,GPIO.HIGH)
+    GPIO.output(LED_BCM_PIN, GPIO.HIGH)
 
 
 def flashLightOff():
     print("LED off")
-    GPIO.output(LED_BCM_PIN,GPIO.LOW)
+    GPIO.output(LED_BCM_PIN, GPIO.LOW)
 
 
 def takePhoto():
@@ -127,8 +143,30 @@ def playCameraSound():
     # requires mpg321 install first
     subprocess.Popen(["mpg321","camera.mp3"])
     
+def physical_button_pressed(event):
+    time.sleep(.01)    # Wait a while for the pin to settle
+    print("pin %s's value is %s" % (BUTTON_BCM_PIN, GPIO.input(BUTTON_BCM_PIN)))
+    
+    if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
+        return 
+    
+    print(time.time())
+    global photoProcessingState 
+    sleep(1) # debounce
+    print("button")
+    print(photoProcessingState)
+    
+    if (photoProcessingState == 2):
+        photoProcessingState = 1
+        countdown()
+    else:
+        photoProcessingState = 1
+        print("Not yet ready")
+
 
 def countdown():
+    global photoProcessingState
+    photoProcessingState = 0
     hideButton()
     lbl.configure(text="3...")
     lbl.update()
@@ -152,6 +190,7 @@ def countdown():
     updatePhoto()
     lbl.configure(text="Press the button to take a photo!")
     lbl.update()
+    photoProcessingState = 2
 
 def clicked():
     btn.grid_remove()
@@ -176,6 +215,13 @@ canvas.grid(column=0,row=1)
 btn = Button(root, text="Take Photo", command=clicked)
 btn.grid(column=0, row=2)
 
+photoProcessingState = 2 # ready for input
+
+GPIO.add_event_detect(BUTTON_BCM_PIN, GPIO.BOTH, callback=physical_button_pressed, bouncetime=500)
+
 root.mainloop()
+
+
+
 print("Goodbye...")
 GPIO.cleanup()
