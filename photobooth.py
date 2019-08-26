@@ -89,15 +89,15 @@ def showButton():
 def hideButton():
     btn.lower()
 
-def updatePhoto():
+def updatePhoto(filename):
     global photoProcessingState
     photoProcessingState = 1
     
     global img
-    n=1
+    n = 1
     same = True 
     
-    path = "image2.jpg"
+    path = filename
     image = Image.open(path)
     [imageSizeWidth, imageSizeHeight] = image.size
     newImageSizeWidth = int(imageSizeWidth*n)
@@ -144,7 +144,7 @@ def playCameraSound():
     subprocess.Popen(["mpg321","camera.mp3"])
     
 def physical_button_pressed(event):
-    time.sleep(.01)    # Wait a while for the pin to settle
+    # time.sleep(.01)    # Wait a while for the pin to settle
     print("pin %s's value is %s" % (BUTTON_BCM_PIN, GPIO.input(BUTTON_BCM_PIN)))
     
     if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
@@ -152,7 +152,7 @@ def physical_button_pressed(event):
     
     print(time.time())
     global photoProcessingState 
-    sleep(1) # debounce
+    #sleep(1) # debounce
     print("button")
     print(photoProcessingState)
     
@@ -168,6 +168,9 @@ def countdown():
     global photoProcessingState
     photoProcessingState = 0
     hideButton()
+    lbl.configure(text="READY? COUNTING FROM 3!")
+    lbl.update()
+    sleep(5)
     lbl.configure(text="3...")
     lbl.update()
     sleep(1)
@@ -182,12 +185,14 @@ def countdown():
     lbl.update()
     flashLightOn()
     takePhoto()
+    updatePhoto("wait.jpg")
     sleep(0.25)
     flashLightOff()
     lbl.update()
     
+    
     sleep(2)
-    updatePhoto()
+    updatePhoto("image2.jpg")
     lbl.configure(text="Press the button to take a photo!")
     lbl.update()
     photoProcessingState = 2
