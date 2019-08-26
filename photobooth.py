@@ -117,7 +117,7 @@ def flashLightOff():
 
 def takePhoto():
     # fswebcam to snap with webcam
-    subprocess.Popen(["fswebcam", "-r","800x600","--no-banner", "image2.jpg"])
+    subprocess.Popen(["fswebcam", "-r","200x200","--no-banner", "image2.jpg"])
     lbl.configure(text="PHOTO SNAPPED!")
     
     # servo based camera cable shutter
@@ -162,13 +162,13 @@ def add_button():
     btn.grid(column=0, row=2)
 
 root = Tk()
-root.geometry('800x800')
+root.geometry('400x400')
 root.title("Photo Booth")
 
 lbl = Label(root, text="Press the button to take a photo!", font=("Arial Bold", 20))
 lbl.grid(column=0, row=0)
 
-canvas = Canvas(root, width = 800, height = 600) 
+canvas = Canvas(root, width = 200, height = 200) 
 img = ImageTk.PhotoImage(Image.open("image.jpg"))      
 canvas.create_image(0,0, anchor=CENTER, image=img) 
 canvas.grid(column=0,row=1)
