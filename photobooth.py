@@ -31,6 +31,15 @@
 #     delete image(s) from camera
 #     delete image(s) from rPi
 
+# Terrific gphoto2 updater: https://github.com/gonzalo/gphoto2-updater
+
+# USBReset because gphoto2 is flaky
+# https://raspberrypi.stackexchange.com/questions/9264/how-do-i-reset-a-usb-device-using-a-script
+# reset device between sessions?
+# do a lsusb
+# then do:
+# sudo ./usbreset /dev/bus/usb/001/027 or whatever it is
+
 # arcade wait mode
 #     
 
@@ -43,6 +52,7 @@ from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import pigpio
 import os, glob
+from postimage import send_data_to_server
 
 GPIO.setmode(GPIO.BCM) # broadcom
 
@@ -84,14 +94,19 @@ photoProcessingState = 0 # 0=not set, 1=initializing, 2=ready for button, 3=proc
 
 
 def extractFileNameFromGphotoOutput(inputString):
-    lines = inputString.splitlines()
-    result = lines[1]
-    result = result.replace("Saving file as ","")
-    return result 
+    try:
+        lines = inputString.splitlines()
+        result = lines[1]
+        result = result.replace("Saving file as ","")
+        return result
+    except:
+        return ""
 
 def deleteLocalImages():
     try:
         for f in glob.glob("DSC*.jpg"):
+            os.remove(f)
+        for f in glob.glob("capt*.jpg"):
             os.remove(f)
     except OSError:
         pass
@@ -158,12 +173,18 @@ def flashLightOff():
 
 def takePhoto():
     # fswebcam to snap with webcam
-    subprocess.Popen(["fswebcam", "-r","200x200","--no-banner", "image2.jpg"])
+    subprocess.Popen(["fswebcam", "-r","1920x1280","--no-banner", "webcam.jpg"])
     lbl.configure(text="PHOTO SNAPPED!")
+    updatePhoto("webcam.jpg")
+    
+    send_data_to_server("webcam.jpg")
+    
     # servo based camera cable shutter
-    moveServo()
+    #moveServo()
     
 def takePhotoWithGPhoto2():
+    lbl.configure(text="Downloading photo...")
+    lbl.update()
     out = check_output(["gphoto2", "--capture-image-and-download"])
     print("output is:")
     print(out)
@@ -171,9 +192,18 @@ def takePhotoWithGPhoto2():
     fileName = extractFileNameFromGphotoOutput(out.decode())
     print(fileName)
     updatePhoto(fileName)
+    
 
     #subprocess.Popen(["gphoto2", "--capture-image-and-download"])
     lbl.configure(text=fileName)
+    lbl.update()
+    print("sending file to server")
+    print(fileName)
+    send_data_to_server(fileName)
+    print("deleting local files")
+    deleteLocalImages()
+    
+    
     
 
 def playCameraSound():
@@ -207,22 +237,23 @@ def countdown():
     hideButton()
     lbl.configure(text="READY? COUNTING FROM 3!")
     lbl.update()
-    sleep(1)
+    #sleep(1)
     lbl.configure(text="3...")
     lbl.update()
-    sleep(1)
+    #sleep(1)
     lbl.configure(text="2...")
     lbl.update()
-    sleep(1)
+    #sleep(1)
     lbl.configure(text="1...")
     lbl.update()
-    sleep(0.8)
-    playCameraSound()
+    #sleep(0.8)
     lbl.configure(text="SNAP!")
     lbl.update()
     flashLightOn()
-    #takePhoto()
-    takePhotoWithGPhoto2()
+    takePhoto()
+    #playCameraSound()
+    #takePhotoWithGPhoto2()
+
     #updatePhoto("wait.jpg")
     sleep(0.25)
     flashLightOff()
@@ -234,6 +265,7 @@ def countdown():
     lbl.configure(text="Press the button to take a photo!")
     lbl.update()
     photoProcessingState = 2
+    clicked()
 
 def clicked():
     btn.grid_remove()
@@ -255,8 +287,8 @@ root.title("Photo Booth")
 lbl = Label(root, text="Press the button to take a photo!", font=("Arial Bold", 20))
 lbl.grid(column=0, row=0)
 
-canvas = Canvas(root, width = 200, height = 200) 
-img = ImageTk.PhotoImage(Image.open("image.jpg"))      
+canvas = Canvas(root, width = 300, height = 200) 
+img = ImageTk.PhotoImage(Image.open("wait.jpg"))      
 canvas.create_image(0,0, anchor=CENTER, image=img) 
 canvas.grid(column=0,row=1)
 
