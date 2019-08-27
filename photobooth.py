@@ -2,6 +2,14 @@
 
 # Wiring: Button, LED, Servo Motor (for shutter release), or webcam.
 
+# Camera: Set Connection mode to USB Auto
+# gphoto2 --capture-image-and-download
+# CAMERA CANNOT BE IN "MENU" Mode.
+
+# TO DO -- need to delete all images from camera at startup
+# OTHERWISE gphoto2 --capture-image-and-download might prompt for overwrite
+# which would stall this program
+
 # LED on BOARD PIN 13
 # SERVO on GPIO 17 which is board pin 11
 # servo ground to arduino ground
@@ -30,9 +38,11 @@ from tkinter import *
 import time 
 from time import sleep
 import subprocess
+from subprocess import check_output
 from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import pigpio
+import os, glob
 
 GPIO.setmode(GPIO.BCM) # broadcom
 
@@ -73,6 +83,22 @@ GPIO.setup(BUTTON_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 photoProcessingState = 0 # 0=not set, 1=initializing, 2=ready for button, 3=processing
 
 
+def extractFileNameFromGphotoOutput(inputString):
+    lines = inputString.splitlines()
+    result = lines[1]
+    result = result.replace("Saving file as ","")
+    return result 
+
+def deleteLocalImages():
+    try:
+        for f in glob.glob("DSC*.jpg"):
+            os.remove(f)
+    except OSError:
+        pass
+    print("Files Deleted")
+    
+
+
 def moveServo():
     #pi.set_servo_pulsewidth(myGPIOServo, 0)    # off
     #sleep(1)
@@ -106,10 +132,9 @@ def updatePhoto(filename):
     else:
         newImageSizeHeight = int(imageSizeHeight/n) 
 
-    image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
+    #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
+    image = image.resize((300, 200), Image.ANTIALIAS)
     img = ImageTk.PhotoImage(image)
-    
-    
     
     #print("updating image...")
     #global img
@@ -135,9 +160,21 @@ def takePhoto():
     # fswebcam to snap with webcam
     subprocess.Popen(["fswebcam", "-r","200x200","--no-banner", "image2.jpg"])
     lbl.configure(text="PHOTO SNAPPED!")
-    
     # servo based camera cable shutter
     moveServo()
+    
+def takePhotoWithGPhoto2():
+    out = check_output(["gphoto2", "--capture-image-and-download"])
+    print("output is:")
+    print(out)
+    print(out.decode())
+    fileName = extractFileNameFromGphotoOutput(out.decode())
+    print(fileName)
+    updatePhoto(fileName)
+
+    #subprocess.Popen(["gphoto2", "--capture-image-and-download"])
+    lbl.configure(text=fileName)
+    
 
 def playCameraSound():
     # requires mpg321 install first
@@ -170,7 +207,7 @@ def countdown():
     hideButton()
     lbl.configure(text="READY? COUNTING FROM 3!")
     lbl.update()
-    sleep(5)
+    sleep(1)
     lbl.configure(text="3...")
     lbl.update()
     sleep(1)
@@ -184,15 +221,16 @@ def countdown():
     lbl.configure(text="SNAP!")
     lbl.update()
     flashLightOn()
-    takePhoto()
-    updatePhoto("wait.jpg")
+    #takePhoto()
+    takePhotoWithGPhoto2()
+    #updatePhoto("wait.jpg")
     sleep(0.25)
     flashLightOff()
     lbl.update()
     
     
     sleep(2)
-    updatePhoto("image2.jpg")
+    #updatePhoto("image2.jpg")
     lbl.configure(text="Press the button to take a photo!")
     lbl.update()
     photoProcessingState = 2
@@ -205,6 +243,11 @@ def clicked():
 def add_button():
     btn.grid(column=0, row=2)
 
+
+# delete files
+deleteLocalImages()
+
+# set up TKinter window
 root = Tk()
 root.geometry('400x400')
 root.title("Photo Booth")
