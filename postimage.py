@@ -2,6 +2,7 @@
 
 import requests
 import os
+
  
 def send_data_to_server(image_path):
  
@@ -15,8 +16,22 @@ def send_data_to_server(image_path):
                              files=multipart_form_data)
         print(response.text)
         print(response.status_code)
+        return response.text 
     except:
-        print("An exception occurred in upload")
-         
+        update_status("heather","An exception occurred in upload: "+response.text)
 
-#send_data_to_server('image2.jpg')
+        print("An exception occurred in upload")
+        return "Error"
+
+def update_status(code, message):
+ 
+    try:
+        
+        response = requests.post('https://chatsparkapi.azurewebsites.net/api/album/heather/status',
+                             json={"code": code, "message":message})
+        print(response.text)
+        print(response.status_code)
+        return response.text 
+    except:
+        print("An exception occurred in posting status")
+        #return "Error"

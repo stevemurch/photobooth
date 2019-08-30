@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 import os, glob
 from postimage import send_data_to_server
 from subprocess import Popen, PIPE
-
+from postimage import update_status
 
 # Occasionally if autofocus does not work, Fuji X-T2 will report back that autofocus is a problem
 # and all further attempts hang. Only solution I've found is to reset the full USB hub, not just
@@ -17,6 +17,7 @@ from subprocess import Popen, PIPE
 # PTP errors or autofocus errors hang the process. 
 
 def resetUSB():
+    update_status("heather","One moment, resetting USB...")
     print("resetting usb")
     sudoPassword="raspberry"
     command = 'usbreset 001/002'.split()
@@ -27,6 +28,7 @@ def resetUSB():
     #p = os.system("echo %s|sudo -S %s" % (sudoPassword, command))
 
 def gphotoReset():
+    update_status("heather","Resetting link to camera...")
     out = check_output(["gphoto2","--reset"])
     sleep(0.5)
     
@@ -37,26 +39,47 @@ def detectErrorNeedingReset(inString):
     print("checking this string for presence of magic words:")
     print(inString)
     # if the word Error or error
+       
+    
     if ("is in location" in inString):
+        update_status("heather","Got photo successfully...")
         return False
     return True
-    
+
+def detectCamera():
+    out = check_output(["gphoto2", "--auto-detect"]).decode()
+    if ("Fuji" not in out):
+        update_status("heather","Camera not detected. Is it powered on? Check, and try again.")
+        return False
+    return True
+        
 
 def takePicture():
     print("taking picture...")
     outString = "Error Error Error"
+    
     try:
         print("before check_output")
         out = check_output(["gphoto2", "--capture-image-and-download"])
+        # I've seen it error here. Best put in some kind of reset clock
+        
         print("output is:")
         outString = out.decode()
+        print("outString:")
         print(outString)
+        if ("No camera found" in outString):
+            update_status("heather","No camera found. Ensure it's powered on.")
+            messagebox.showinfo("No Camera Found.","No camera found. Ensure it's powered on.")
     except:
-        print("Exception! Trying to reset USB. One moment.")
-        resetUSB()
-        gphotoReset()
-        deleteLocalImages()
-        return 
+        if (not detectCamera()):
+            update_status("heather","No camera found. Ensure it's powered on.")
+        if (detectCamera()):
+            update_status("heather","Exception! Trying to reset USB. One moment.")
+            print("Exception! Trying to reset USB. One moment.")
+            resetUSB()
+            gphotoReset() # will fail if power is turned off or no camera found
+            deleteLocalImages()
+            return 
     else:
         print("Nothing went wrong.")
         
@@ -72,9 +95,11 @@ def takePicture():
     fileName = extractFileNameFromGphotoOutput(out.decode())
     print(fileName)
 
+    update_status("heather","Your photo is on its way...")
     print("sending file to server")
     print(fileName)
-    #send_data_to_server(fileName)
+    upload_response = send_data_to_server(fileName)
+    print(upload_response)
     
     #deleteLocalImages()
 
@@ -97,10 +122,26 @@ def deleteLocalImages():
     except OSError:
         pass
     print("Files Deleted")
-    
-deleteLocalImages()
-while True:
-    #resetUSB()
-    #gphotoReset()
-    takePicture()
+
+
+def setupPhotoShoot():
+    deleteLocalImages()
+    if (not detectCamera()):
+        exit
+        
+def snapPhotoReliably():
+    try:
+        #resetUSB()
+        #gphotoReset()
+        takePicture()
+    except:
+        print("An error has occurred in the application. One moment while I reset.")
+        update_status("heather","An error occurred... one moment while I reset.")
+        resetUSB()
+        gphotoReset()
+        update_status("heather","OK, I've reset. Please try again.")
+        
+
+      
+                  
     
