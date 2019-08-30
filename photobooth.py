@@ -54,6 +54,7 @@ import RPi.GPIO as GPIO
 import pigpio
 import os, glob
 from postimage import send_data_to_server, update_status
+from subprocess import Popen, PIPE
 
 GPIO.setmode(GPIO.BCM) # broadcom
 
@@ -226,7 +227,7 @@ def reset_button_pressed(event):
     print("resetting usb")
     sudoPassword="raspberry"
     command = 'reboot'.split()
-    p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
+    p = Popen(['sudo ','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
 
 
     
