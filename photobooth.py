@@ -227,7 +227,7 @@ def reset_button_pressed(event):
     print("resetting usb")
     sudoPassword="raspberry"
     command = 'reboot'.split()
-    p = Popen(['sudo ','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
+    p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
 
 
     
