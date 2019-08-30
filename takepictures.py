@@ -79,9 +79,9 @@ def takePicture():
             resetUSB()
             gphotoReset() # will fail if power is turned off or no camera found
             deleteLocalImages()
-            return 
+            return "Error"
     else:
-        print("Nothing went wrong.")
+        print("Success")
         
     print("checking if return statement contained an error")
     errorNeedingResetOccurred = detectErrorNeedingReset(outString)
@@ -90,16 +90,10 @@ def takePicture():
         resetUSB()
         gphotoReset()
         deleteLocalImages()
-        return 
+        return "Error"
     
     fileName = extractFileNameFromGphotoOutput(out.decode())
-    print(fileName)
-
-    update_status("heather","Your photo is on its way...")
-    print("sending file to server")
-    print(fileName)
-    upload_response = send_data_to_server(fileName)
-    print(upload_response)
+    return fileName 
     
     #deleteLocalImages()
 
@@ -133,14 +127,15 @@ def snapPhotoReliably():
     try:
         #resetUSB()
         #gphotoReset()
-        takePicture()
+        result = takePicture()
+        return result 
     except:
         print("An error has occurred in the application. One moment while I reset.")
         update_status("heather","An error occurred... one moment while I reset.")
         resetUSB()
         gphotoReset()
         update_status("heather","OK, I've reset. Please try again.")
-        
+        return "Try Again"
 
       
                   

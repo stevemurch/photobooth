@@ -48,13 +48,11 @@ from tkinter import *
 import time 
 from time import sleep
 import subprocess
-from subprocess import check_output
+from subprocess import check_output, Popen, PIPE
 from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
-import pigpio
 import os, glob
 from postimage import send_data_to_server, update_status
-from subprocess import Popen, PIPE
 
 GPIO.setmode(GPIO.BCM) # broadcom
 
@@ -65,27 +63,12 @@ BUTTON_BCM_PIN = 22 # physical pin 15
 
 BUTTON_RESET_BCM_PIN = 18 # physical pin 12
 
-from time import sleep
 
-# servo -- use pigpio for jitter-free
-# https://steemit.com/python/@makerhacks/jitter-free-servo-control-on-the-raspberry-pi
-# note that you first have to run a daemon:
-# sudo pigpiod
-# I've already started it here with:
-# sudo systemctl enable pigpiod
+
 
 
 # pin numbering -- broadcom needed
 # https://gpiozero.readthedocs.io/en/stable/recipes.html#pin-numbering
-
-
-
-myGPIOServo=17 # physical board pin 11
-myCorrection=0.45
-maxPW=(2.0+myCorrection)/1000
-minPW=(1.0-myCorrection)/1000
-
-pi = pigpio.pi()
 
 # light 
 GPIO.setup(LED_BCM_PIN, GPIO.OUT)
@@ -94,8 +77,6 @@ GPIO.setup(LED_BCM_PIN, GPIO.OUT)
 GPIO.setup(BUTTON_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # reset button
 GPIO.setup(BUTTON_RESET_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-
 
 photoProcessingState = 0 # 0=not set, 1=initializing, 2=ready for button, 3=processing
 
@@ -119,16 +100,6 @@ def deleteLocalImages():
         pass
     print("Files Deleted")
     
-
-
-def moveServo():
-    #pi.set_servo_pulsewidth(myGPIOServo, 0)    # off
-    #sleep(1)
-    pi.set_servo_pulsewidth(myGPIOServo, 1000) # position anti-clockwise
-    sleep(1)
-    pi.set_servo_pulsewidth(myGPIOServo, 1500) # middle is 1500
-    sleep(1)
-    pi.set_servo_pulsewidth(myGPIOServo, 0)    # off
 
 
 def showButton():
@@ -165,7 +136,7 @@ def updatePhoto(filename):
     
     canvas.create_image(10,10, anchor=NW, image=img) 
     canvas.grid(column=0,row=1)
-    canvas.update()
+    #canvas.update()
 
 def flashLightOn():
     #GPIO.setwarnings(False)
@@ -178,38 +149,36 @@ def flashLightOff():
     GPIO.output(LED_BCM_PIN, GPIO.LOW)
 
 
-def takePhoto():
-    # fswebcam to snap with webcam
-    subprocess.Popen(["fswebcam", "-r","1920x1280","--no-banner", "webcam.jpg"])
-    lbl.configure(text="PHOTO SNAPPED!")
-    updatePhoto("webcam.jpg")
+# def takePhoto():
+#     # fswebcam to snap with webcam
+#     subprocess.Popen(["fswebcam", "-r","1920x1280","--no-banner", "webcam.jpg"])
+#     lbl.configure(text="PHOTO SNAPPED!")
+#     updatePhoto("webcam.jpg")
+#     
+#     send_data_to_server("webcam.jpg")
+   
     
-    send_data_to_server("webcam.jpg")
-    
-    # servo based camera cable shutter
-    #moveServo()
-    
-def takePhotoWithGPhoto2():
-    lbl.configure(text="Downloading photo...")
-    lbl.update()
-    out = check_output(["gphoto2", "--capture-image-and-download"])
-    print("output is:")
-    print(out)
-    print(out.decode())
-    fileName = extractFileNameFromGphotoOutput(out.decode())
-    print(fileName)
-    updatePhoto(fileName)
-    
-
-    #subprocess.Popen(["gphoto2", "--capture-image-and-download"])
-    lbl.configure(text=fileName)
-    lbl.update()
-    print("loading photo... one moment please")
-    print(fileName)
-    upload_response = send_data_to_server(fileName)
-    print(upload_response)
-    print("deleting local files")
-    deleteLocalImages()
+# def takePhotoWithGPhoto2():
+#     lbl.configure(text="Downloading photo...")
+#     lbl.update()
+#     out = check_output(["gphoto2", "--capture-image-and-download"])
+#     print("output is:")
+#     print(out)
+#     print(out.decode())
+#     fileName = extractFileNameFromGphotoOutput(out.decode())
+#     print(fileName)
+#     updatePhoto(fileName)
+#     
+# 
+#     #subprocess.Popen(["gphoto2", "--capture-image-and-download"])
+#     lbl.configure(text=fileName)
+#     lbl.update()
+#     print("loading photo... one moment please")
+#     print(fileName)
+#     upload_response = send_data_to_server(fileName)
+#     print(upload_response)
+#     print("deleting local files")
+#     deleteLocalImages()
     
     
 def fullReset():
@@ -258,6 +227,10 @@ def physical_button_pressed(event):
         photoProcessingState = 1
         print("Not yet ready")
 
+def update_label():
+    lbl.configure(text="Great! One moment...")
+    lbl.update()
+
 
 def countdown():
     update_status("heather","Taking a new picture...")
@@ -280,31 +253,69 @@ def countdown():
     #lbl.update()
     updatePhoto("1.png")
     sleep(0.8)
-    lbl.configure(text="SNAP!")
-    lbl.update()
+    
+    
+    
+    
     flashLightOn()
     #playCameraSound()
+    
+    
     
     # update the web album on popsee 
     update_status("heather","Getting photo from camera...")
     
-    updatePhoto("hourglass.png")
-    snapPhotoReliably()
+    updatePhoto("camera.png")
+
+    #global root
+    root.after(1000, update_label)
+    root.after(1500, show_wait_indicator)
     
+    fileNameOrError = snapPhotoReliably()
+    
+    print("fileNameOrError is:")
+    print(fileNameOrError)
+    
+
+
+    if ("error" not in fileNameOrError) and ("Error" not in fileNameOrError) :
+        update_status("heather","Your photo is on its way...")
+        print("sending file to server")
+        print(fileNameOrError)
+        updatePhoto(fileNameOrError)
+        
+        lbl.configure(text="Uploading to Popsee...")
+        lbl.update()
+        upload_response = send_data_to_server(fileNameOrError)
+        hide_wait_indicator()
+        print(upload_response)
+        flashLightOff()
+    else:
+        print("An error occurred")
+        lbl.configure(text="An error occurred. Please try again.")
+        update_status("heather","Error on last photo attempt. Please try again.")
+        lbl.update()
+        photoProcessingState = 2
+        flashLightOff()
+        hide_wait_indicator()
+        return 
     
     #playCameraSound()
     #takePhotoWithGPhoto2()
 
     #updatePhoto("wait.jpg")
     #sleep(0.25)
-    lbl.update()
-    flashLightOff()
+    #lbl.update()
+
+    
+
     
     #sleep(2)
     #updatePhoto("image2.jpg")
-    updatePhoto("camera.png")
+    #updatePhoto("camera.png")
     update_status("heather","Ready")
-    lbl.configure(text="Press button to take photo!")
+    lbl.configure(text="READY for next photo! Press button!")
+    hide_wait_indicator()
     lbl.update()
     photoProcessingState = 2
     
@@ -316,6 +327,39 @@ def clicked():
 
 def add_button():
     btn.grid(column=0, row=2)
+
+
+def update_wait_indicator(ind):
+    global bShowWaitIndicator
+    if (bShowWaitIndicator):
+        if (ind==maxFrames):
+            ind = 0
+            root.after(0,update_wait_indicator, ind)
+            return
+        print(ind)
+        frame = frames[ind]
+        ind += 1
+        print(ind)
+        waitindicator.configure(image=frame)
+        root.after(100, update_wait_indicator, ind)
+    else:
+        ind = 0
+        
+
+def show_wait_indicator():
+    global bShowWaitIndicator
+    bShowWaitIndicator = True
+    waitindicator.grid(column=0, row=1)
+    # show wait indicator
+    root.after(0, update_wait_indicator, 0)
+
+    
+def hide_wait_indicator():
+    global bShowWaitIndicator
+    bShowWaitIndicator = False
+    waitindicator.grid_remove()
+    
+
 
 
 # delete files
@@ -347,6 +391,14 @@ update_status("heather","Ready")
 GPIO.add_event_detect(BUTTON_BCM_PIN, GPIO.BOTH, callback=physical_button_pressed, bouncetime=500)
 # detect reset button
 GPIO.add_event_detect(BUTTON_RESET_BCM_PIN, GPIO.BOTH, callback=reset_button_pressed, bouncetime=500)
+
+
+# wait indicator
+maxFrames = 8
+bShowWaitIndicator = False 
+frames = [PhotoImage(file='sample.gif',format = 'gif -index %i' %(i)) for i in range(0, maxFrames)]
+waitindicator = Label(root)
+
 
 
 root.mainloop()
