@@ -37,7 +37,13 @@ import RPi.GPIO as GPIO
 import os, glob
 from postimage import send_data_to_server, update_status
 
+import logging
+
 os.chdir("/home/pi/Desktop/photobooth")
+
+logging.basicConfig(level=logging.DEBUG, filename='photobooth.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+
+logging.info("Initializing")
 
 GPIO.setmode(GPIO.BCM) # broadcom
 
@@ -49,7 +55,6 @@ BUTTON_BCM_PIN = 22 # physical pin 15
 BUTTON_RESET_BCM_PIN = 18 # physical pin 12
 
 SNAP_PHOTO_LED_BCM_PIN = 4 # physical pin 7
-
 
 bPhotoButtonLit = False
 bSnapPhotoButtonShouldFlash = True  
@@ -102,8 +107,10 @@ def extractFileNameFromGphotoOutput(inputString):
         lines = inputString.splitlines()
         result = lines[1]
         result = result.replace("Saving file as ","")
+        logging.info("extractFileNameFromGphotoOutput: %s", result)
         return result
     except:
+        logging.error("Could not extractFileNameFromGphotoOutput('%s')", inputString)
         return ""
 
 def deleteLocalImages():
@@ -113,8 +120,11 @@ def deleteLocalImages():
         for f in glob.glob("capt*.jpg"):
             os.remove(f)
     except OSError:
+        logging.error("OS error in deleteLocalImages()")
+
         pass
-    print("Files Deleted")
+    print("Files deleted.")
+    logging.info("Files deleted.")
     
 
 
@@ -125,6 +135,7 @@ def hideButton():
     btn.lower()
 
 def updatePhoto(filename):
+    logging.info("update photo to %s", filename)
     global photoProcessingState
     photoProcessingState = 1
     
@@ -165,39 +176,10 @@ def flashLightOff():
     GPIO.output(LED_BCM_PIN, GPIO.LOW)
 
 
-# def takePhoto():
-#     # fswebcam to snap with webcam
-#     subprocess.Popen(["fswebcam", "-r","1920x1280","--no-banner", "webcam.jpg"])
-#     lbl.configure(text="PHOTO SNAPPED!")
-#     updatePhoto("webcam.jpg")
-#     
-#     send_data_to_server("webcam.jpg")
-   
-    
-# def takePhotoWithGPhoto2():
-#     lbl.configure(text="Downloading photo...")
-#     lbl.update()
-#     out = check_output(["gphoto2", "--capture-image-and-download"])
-#     print("output is:")
-#     print(out)
-#     print(out.decode())
-#     fileName = extractFileNameFromGphotoOutput(out.decode())
-#     print(fileName)
-#     updatePhoto(fileName)
-#     
-# 
-#     #subprocess.Popen(["gphoto2", "--capture-image-and-download"])
-#     lbl.configure(text=fileName)
-#     lbl.update()
-#     print("loading photo... one moment please")
-#     print(fileName)
-#     upload_response = send_data_to_server(fileName)
-#     print(upload_response)
-#     print("deleting local files")
-#     deleteLocalImages()
     
     
 def fullReset():
+    logging.warning("fullReset called")
     resetUSB()
     gphotoReset()
     setupPhotoShoot()
@@ -207,15 +189,18 @@ def playCameraSound():
     subprocess.Popen(["mpg321","camera.mp3"])
 
 def reset_button_pressed(event):
+    logging.warning("reset_button_pressed")
     if (GPIO.input(BUTTON_RESET_BCM_PIN)==1):  #ignore second one
         return
     
+    logging.warning("Initiating a reset of the board.")
+    
     print("RESET!")
-    #update_status("heather","One moment, rebooting board...")
-    #print("resetting usb")
-    #sudoPassword="raspberry"
-    #command = 'reboot'.split()
-    #p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
+    update_status("heather","Reset button pressed. One moment; rebooting photo booth...")
+    print("resetting usb")
+    sudoPassword="raspberry"
+    command = 'reboot'.split()
+    p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
 
 
     
@@ -229,10 +214,12 @@ def physical_button_pressed(event):
     if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
         return 
     
+    logging.info("physical_button_pressed called")
     global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False 
     
     if (not detectCamera()):
+        logging.error("Cannot detect camera. Is it powered on?")
         update_status("heather","Camera not detected. Is it powered on?")
         return 
     
@@ -247,6 +234,7 @@ def physical_button_pressed(event):
         countdown()
     else:
         photoProcessingState = 1
+        logging.error("photoProcessingState is 1; not yet ready")
         print("Not yet ready")
 
 def update_label():
@@ -255,6 +243,7 @@ def update_label():
 
 
 def countdown():
+    logging.info("COUNTDOWN called")
     global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False
     
@@ -289,6 +278,7 @@ def countdown():
     
     # update the web album on popsee 
     update_status("heather","Getting photo from camera...")
+    logging.info("Getting photo from camera")
     
     updatePhoto("camera.png")
 
@@ -298,6 +288,8 @@ def countdown():
     
     fileNameOrError = snapPhotoReliably()
     
+    logging.info("snapPhotoReliably result is:%s", fileNameOrError)
+    
     print("fileNameOrError is:")
     print(fileNameOrError)
     
@@ -305,18 +297,25 @@ def countdown():
 
     if ("error" not in fileNameOrError) and ("Error" not in fileNameOrError) :
         update_status("heather","Your photo is on its way...")
+        logging.info("Got what looks like a filename from camera:%s", fileNameOrError)
+
         print("sending file to server")
         print(fileNameOrError)
         updatePhoto(fileNameOrError)
         
         lbl.configure(text="Uploading to Popsee...")
+        logging.info("Uploading %s to popsee", fileNameOrError)
+
         lbl.update()
         upload_response = send_data_to_server(fileNameOrError)
         hide_wait_indicator()
         print(upload_response)
+        logging.info("response from upload: %s", upload_response)
+
         flashLightOff()
     else:
         print("An error occurred")
+        logging.error("An error occurred:%s", fileNameOrError)
         lbl.configure(text="An error occurred. Please try again.")
         update_status("heather","Error on last photo attempt. Please try again.")
         lbl.update()
