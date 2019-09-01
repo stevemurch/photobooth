@@ -1,6 +1,7 @@
 # PhotoBooth
 
-# Wiring: Button, LED, Servo Motor (for shutter release), or webcam.
+# PINS ARE IN BROADCOM FORMAT, NOT PHYSICAL PIN FORMAT
+# Wiring: Button and LED, USB cable
 
 # Camera: Set Connection mode to USB Auto
 # gphoto2 --capture-image-and-download
@@ -11,25 +12,7 @@
 # which would stall this program
 
 # LED on BOARD PIN 13
-# SERVO on GPIO 17 which is board pin 11
-# servo ground to arduino ground
-# servo red power, ground to battery (and ground also to rpi ground)
-# 
-# wait for button press
-#     count down 3..2..1
-#     turn on LED
-#     snap photo
-#          move servo
-#          move servo back
-#          turn off LED 
-#          download image from camera
-#     display image on screen
-#     show QR code 
-#     resize to 3Mb or less
-#     tweet it
-#     upload to Google Photos
-#     delete image(s) from camera
-#     delete image(s) from rPi
+
 
 # Terrific gphoto2 updater: https://github.com/gonzalo/gphoto2-updater
 
@@ -54,6 +37,8 @@ import RPi.GPIO as GPIO
 import os, glob
 from postimage import send_data_to_server, update_status
 
+os.chdir("/home/pi/Desktop/photobooth")
+
 GPIO.setmode(GPIO.BCM) # broadcom
 
 LED_BCM_PIN = 27 # physical pin number 13
@@ -63,15 +48,21 @@ BUTTON_BCM_PIN = 22 # physical pin 15
 
 BUTTON_RESET_BCM_PIN = 18 # physical pin 12
 
+SNAP_PHOTO_LED_BCM_PIN = 4 # physical pin 7
 
 
-
+bPhotoButtonLit = False
+bSnapPhotoButtonShouldFlash = True  
 
 # pin numbering -- broadcom needed
 # https://gpiozero.readthedocs.io/en/stable/recipes.html#pin-numbering
 
 # light 
 GPIO.setup(LED_BCM_PIN, GPIO.OUT)
+
+# LED on pushbutton
+GPIO.setup(SNAP_PHOTO_LED_BCM_PIN, GPIO.OUT)
+
 # start button
 # set the default to high, pull up on default
 GPIO.setup(BUTTON_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -80,6 +71,31 @@ GPIO.setup(BUTTON_RESET_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 photoProcessingState = 0 # 0=not set, 1=initializing, 2=ready for button, 3=processing
 
+# called by loop. if button should be flashing, toggle it. if it shouldn't turn it off.
+def handlePhotoButtonFlash():
+    global bPhotoButtonLit
+    global bSnapPhotoButtonShouldFlash
+    if (bSnapPhotoButtonShouldFlash):
+        if (not bPhotoButtonLit):
+            GPIO.output(SNAP_PHOTO_LED_BCM_PIN, GPIO.HIGH)
+            bPhotoButtonLit = True
+        else:
+            GPIO.output(SNAP_PHOTO_LED_BCM_PIN, GPIO.LOW)
+            bPhotoButtonLit = False
+    else:
+        bPhotoButtonLit = False
+        GPIO.output(SNAP_PHOTO_LED_BCM_PIN, GPIO.LOW)
+    root.after(1000, handlePhotoButtonFlash)
+    
+
+def flashTakePhotoButton(nTimes):
+    for i in range(1,nTimes):
+        GPIO.output(SNAP_PHOTO_LED_BCM_PIN, GPIO.HIGH)
+        bSnapPhotoButtonLit = True 
+        sleep(0.1)
+        GPIO.output(SNAP_PHOTO_LED_BCM_PIN, GPIO.LOW)
+        bSnapPhotoButtonLit = False 
+        sleep(0.1)
 
 def extractFileNameFromGphotoOutput(inputString):
     try:
@@ -191,12 +207,15 @@ def playCameraSound():
     subprocess.Popen(["mpg321","camera.mp3"])
 
 def reset_button_pressed(event):
+    if (GPIO.input(BUTTON_RESET_BCM_PIN)==1):  #ignore second one
+        return
+    
     print("RESET!")
-    update_status("heather","One moment, rebooting board...")
-    print("resetting usb")
-    sudoPassword="raspberry"
-    command = 'reboot'.split()
-    p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
+    #update_status("heather","One moment, rebooting board...")
+    #print("resetting usb")
+    #sudoPassword="raspberry"
+    #command = 'reboot'.split()
+    #p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
 
 
     
@@ -209,6 +228,9 @@ def physical_button_pressed(event):
     
     if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
         return 
+    
+    global bSnapPhotoButtonShouldFlash
+    bSnapPhotoButtonShouldFlash = False 
     
     if (not detectCamera()):
         update_status("heather","Camera not detected. Is it powered on?")
@@ -233,6 +255,9 @@ def update_label():
 
 
 def countdown():
+    global bSnapPhotoButtonShouldFlash
+    bSnapPhotoButtonShouldFlash = False
+    
     update_status("heather","Taking a new picture...")
     
     global photoProcessingState
@@ -268,8 +293,8 @@ def countdown():
     updatePhoto("camera.png")
 
     #global root
-    root.after(1000, update_label)
-    root.after(1500, show_wait_indicator)
+    root.after(1100, update_label)
+    root.after(1600, show_wait_indicator)
     
     fileNameOrError = snapPhotoReliably()
     
@@ -319,6 +344,8 @@ def countdown():
     lbl.update()
     photoProcessingState = 2
     
+    bSnapPhotoButtonShouldFlash = True
+    
 
 def clicked():
     btn.grid_remove()
@@ -336,12 +363,12 @@ def update_wait_indicator(ind):
             ind = 0
             root.after(0,update_wait_indicator, ind)
             return
-        print(ind)
+        #print(ind)
         frame = frames[ind]
         ind += 1
-        print(ind)
-        waitindicator.configure(image=frame)
-        root.after(100, update_wait_indicator, ind)
+        #print(ind)
+        waitindicator.configure(image=frame, borderwidth=0, highlightbackground='black', highlightthickness=0)
+        root.after(150, update_wait_indicator, ind)
     else:
         ind = 0
         
@@ -358,6 +385,15 @@ def hide_wait_indicator():
     global bShowWaitIndicator
     bShowWaitIndicator = False
     waitindicator.grid_remove()
+
+def keypressed(event):
+    out_string = '{k!r}'.format(k = event.char)
+    print(out_string)
+    print(event.char)
+    if (event.char == 'x'): # escape
+        print("EXITING")
+        #GPIO.cleanup()
+        root.destroy()
     
 
 
@@ -367,16 +403,22 @@ def hide_wait_indicator():
 
 setupPhotoShoot()
 
+#flashTakePhotoButton(10)
+
 # set up TKinter window
 root = Tk()
 root.geometry('600x400')
 root.title("Photo Booth")
+root.configure(background='black')
 
-lbl = Label(root, text="Press button to take photo!", font=("Arial Bold", 20))
+# remove titlebar
+# root.overrideredirect(1)
+
+lbl = Label(root, text="Press button to take photo!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
 lbl.grid(column=0, row=0)
 update_status("heather","")
 
-canvas = Canvas(root, width = 600, height = 400) 
+canvas = Canvas(root, width = 600, height = 400, background='#000',highlightthickness=0) 
 img = ImageTk.PhotoImage(Image.open("camera.png"))      
 canvas.create_image(0,0, anchor=NW, image=img) 
 canvas.grid(column=0,row=1)
@@ -392,13 +434,17 @@ GPIO.add_event_detect(BUTTON_BCM_PIN, GPIO.BOTH, callback=physical_button_presse
 # detect reset button
 GPIO.add_event_detect(BUTTON_RESET_BCM_PIN, GPIO.BOTH, callback=reset_button_pressed, bouncetime=500)
 
+# wait indicator on SnapPhoto button
+root.after(1000, handlePhotoButtonFlash)
 
 # wait indicator
 maxFrames = 8
 bShowWaitIndicator = False 
 frames = [PhotoImage(file='sample.gif',format = 'gif -index %i' %(i)) for i in range(0, maxFrames)]
-waitindicator = Label(root)
+waitindicator = Label(root, highlightthickness=0,borderwidth=0, highlightbackground='black')
 
+
+root.bind('<Key>', keypressed)
 
 
 root.mainloop()
