@@ -110,7 +110,7 @@ def extractFileNameFromGphotoOutput(inputString):
         logging.info("extractFileNameFromGphotoOutput: %s", result)
         return result
     except:
-        logging.error("Could not extractFileNameFromGphotoOutput('%s')", inputString)
+        logging.exception("Could not extractFileNameFromGphotoOutput('%s')", inputString)
         return ""
 
 def deleteLocalImages():
@@ -120,7 +120,7 @@ def deleteLocalImages():
         for f in glob.glob("capt*.jpg"):
             os.remove(f)
     except OSError:
-        logging.error("OS error in deleteLocalImages()")
+        logging.exception("OS error in deleteLocalImages()")
 
         pass
     print("Files deleted.")
