@@ -136,6 +136,7 @@ def deleteLocalImages():
 
 def updatePhoto(filename):
     logging.info("update photo to %s", filename)
+    
     global photoProcessingState
     photoProcessingState = 1
     
@@ -163,7 +164,7 @@ def updatePhoto(filename):
     
     canvas.create_image(0,0, anchor=NW, image=img) 
     canvas.grid(column=1,row=1,padx=(0,0), pady=(0,0))
-    #canvas.update()
+    canvas.update()
 
 def flashLightOn():
     #GPIO.setwarnings(False)
@@ -244,6 +245,8 @@ def update_label():
 
 def countdown():
     logging.info("COUNTDOWN called")
+    hide_qr_code_prompt()
+    
     global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False
     
@@ -252,9 +255,20 @@ def countdown():
     global photoProcessingState
     photoProcessingState = 0
     #hideButton()
-    lbl.configure(text="READY? COUNTING FROM 3!")
+    lbl.configure(text="   ")
     lbl.update()
     sleep(1)
+    
+    updatePhoto("5.png")
+    #lbl.configure(text="3...")
+    #lbl.update()
+    sleep(1)
+    
+    updatePhoto("4.png")
+    #lbl.configure(text="3...")
+    #lbl.update()
+    sleep(1)
+    
     updatePhoto("3.png")
     #lbl.configure(text="3...")
     #lbl.update()
@@ -303,7 +317,9 @@ def countdown():
         print(fileNameOrError)
         updatePhoto(fileNameOrError)
         
-        lbl.configure(text="Uploading... Scan the QR Code to see on your phone!")
+        lbl.configure(text="Uploading...")
+        show_qr_code_prompt()
+        
         logging.info("Uploading %s to popsee", fileNameOrError)
 
         lbl.update()
@@ -311,8 +327,8 @@ def countdown():
         hide_wait_indicator()
         print(upload_response)
         logging.info("response from upload: %s", upload_response)
-
         flashLightOff()
+        
     else:
         print("An error occurred")
         logging.error("An error occurred:%s", fileNameOrError)
@@ -340,16 +356,26 @@ def countdown():
     #updatePhoto("image2.jpg")
     #updatePhoto("camera.png")
     update_status("heather","Ready")
-    lbl.configure(text="READY for next photo! Press button!")
+    lbl.configure(text="READY FOR NEXT PHOTO... Just press the button!")
     hide_wait_indicator()
     lbl.update()
     photoProcessingState = 2
     
+    show_qr_code_prompt()
+    
+    
     bSnapPhotoButtonShouldFlash = True
     
+def show_qr_code_prompt():
+    qr_code_prompt.grid(column=1, row=2, pady=(20,20), padx=(0,0))
+    
+def hide_qr_code_prompt():
+    qr_code_prompt.grid_remove()
 
 def clicked():
     #btn.grid_remove()
+    hide_qr_code_prompt()
+    
     countdown()
     #add_button()
 
@@ -377,7 +403,7 @@ def update_wait_indicator(ind):
 def show_wait_indicator():
     global bShowWaitIndicator
     bShowWaitIndicator = True
-    waitindicator.grid(column=1, row=2)
+    waitindicator.grid(column=1, row=3, pady=(20,20), padx=(0,0))
     # show wait indicator
     root.after(0, update_wait_indicator, 0)
 
@@ -416,16 +442,20 @@ root.configure(background='black', borderwidth=0, border=0, highlightthickness=0
 # remove titlebar
 # root.overrideredirect(1)
 
-lbl = Label(root, text="Press the button to take a photo!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
+lbl = Label(root, text="Press the button to start the 5-second photo countdown!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
 lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))
 update_status("heather","")
+
+qr_code_prompt = Label(root, text="Scan the QR code to see the photos on your phone!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
+
+
 
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(2, weight=1)
 
 
 canvas = Canvas(root, width = 900, height = 600, background='#000',highlightthickness=0, borderwidth=0, border=0) 
-updatePhoto("camera.png")
+updatePhoto("prompt.png")
 
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(2, weight=1)
