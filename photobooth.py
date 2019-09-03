@@ -128,11 +128,11 @@ def deleteLocalImages():
     
 
 
-def showButton():
-    btn.lift()
+#def showButton():
+#    btn.lift()
 
-def hideButton():
-    btn.lower()
+#def hideButton():
+#    btn.lower()
 
 def updatePhoto(filename):
     logging.info("update photo to %s", filename)
@@ -153,7 +153,7 @@ def updatePhoto(filename):
         newImageSizeHeight = int(imageSizeHeight/n) 
 
     #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
-    image = image.resize((300, 200), Image.ANTIALIAS)
+    image = image.resize((900, 600), Image.ANTIALIAS)
     img = ImageTk.PhotoImage(image)
     
     #print("updating image...")
@@ -161,8 +161,8 @@ def updatePhoto(filename):
     #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
     #resized = img.zoom(1000,500)
     
-    canvas.create_image(10,10, anchor=NW, image=img) 
-    canvas.grid(column=0,row=1)
+    canvas.create_image(0,0, anchor=NW, image=img) 
+    canvas.grid(column=1,row=1,padx=(0,0), pady=(0,0))
     #canvas.update()
 
 def flashLightOn():
@@ -251,7 +251,7 @@ def countdown():
     
     global photoProcessingState
     photoProcessingState = 0
-    hideButton()
+    #hideButton()
     lbl.configure(text="READY? COUNTING FROM 3!")
     lbl.update()
     sleep(1)
@@ -280,7 +280,7 @@ def countdown():
     update_status("heather","Getting photo from camera...")
     logging.info("Getting photo from camera")
     
-    updatePhoto("camera.png")
+    updatePhoto("clearpixel.png")
 
     #global root
     root.after(1100, update_label)
@@ -303,7 +303,7 @@ def countdown():
         print(fileNameOrError)
         updatePhoto(fileNameOrError)
         
-        lbl.configure(text="Uploading to Popsee...")
+        lbl.configure(text="Uploading... Scan the QR Code to see on your phone!")
         logging.info("Uploading %s to popsee", fileNameOrError)
 
         lbl.update()
@@ -322,6 +322,8 @@ def countdown():
         photoProcessingState = 2
         flashLightOff()
         hide_wait_indicator()
+        bSnapPhotoButtonShouldFlash = True 
+        
         return 
     
     #playCameraSound()
@@ -347,12 +349,12 @@ def countdown():
     
 
 def clicked():
-    btn.grid_remove()
+    #btn.grid_remove()
     countdown()
-    add_button()
+    #add_button()
 
-def add_button():
-    btn.grid(column=0, row=2)
+#def add_button():
+    #btn.grid(column=0, row=2)
 
 
 def update_wait_indicator(ind):
@@ -375,7 +377,7 @@ def update_wait_indicator(ind):
 def show_wait_indicator():
     global bShowWaitIndicator
     bShowWaitIndicator = True
-    waitindicator.grid(column=0, row=1)
+    waitindicator.grid(column=1, row=2)
     # show wait indicator
     root.after(0, update_wait_indicator, 0)
 
@@ -394,7 +396,8 @@ def keypressed(event):
         #GPIO.cleanup()
         root.destroy()
     
-
+def exit(e):
+    root.destroy()
 
 
 # delete files
@@ -406,24 +409,33 @@ setupPhotoShoot()
 
 # set up TKinter window
 root = Tk()
-root.geometry('600x400')
+root.geometry('1820x950')
 root.title("Photo Booth")
-root.configure(background='black')
+root.configure(background='black', borderwidth=0, border=0, highlightthickness=0)
 
 # remove titlebar
 # root.overrideredirect(1)
 
-lbl = Label(root, text="Press button to take photo!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
-lbl.grid(column=0, row=0)
+lbl = Label(root, text="Press the button to take a photo!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
+lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))
 update_status("heather","")
 
-canvas = Canvas(root, width = 600, height = 400, background='#000',highlightthickness=0) 
-img = ImageTk.PhotoImage(Image.open("camera.png"))      
-canvas.create_image(0,0, anchor=NW, image=img) 
-canvas.grid(column=0,row=1)
+root.grid_columnconfigure(0, weight=1)
+root.grid_columnconfigure(2, weight=1)
 
-btn = Button(root, text="Take Photo", command=clicked)
-btn.grid(column=0, row=2)
+
+canvas = Canvas(root, width = 900, height = 600, background='#000',highlightthickness=0, borderwidth=0, border=0) 
+updatePhoto("camera.png")
+
+root.grid_columnconfigure(0, weight=1)
+root.grid_columnconfigure(2, weight=1)
+
+#img = ImageTk.PhotoImage(Image.open("camera.png"))      
+#canvas.create_image(0,0, anchor=NW, image=img) 
+#canvas.grid(column=0,row=1, padx=(0, 0), pady=(50, 50))
+
+#btn = Button(root, text="Take Photo", command=clicked)
+#btn.grid(column=0, row=2)
 
 photoProcessingState = 2 # ready for input
 update_status("heather","Ready")
@@ -443,6 +455,7 @@ frames = [PhotoImage(file='sample.gif',format = 'gif -index %i' %(i)) for i in r
 waitindicator = Label(root, highlightthickness=0,borderwidth=0, highlightbackground='black')
 
 
+root.bind("<Escape>", exit)
 root.bind('<Key>', keypressed)
 
 
