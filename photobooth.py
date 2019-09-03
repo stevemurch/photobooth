@@ -57,7 +57,10 @@ BUTTON_RESET_BCM_PIN = 18 # physical pin 12
 SNAP_PHOTO_LED_BCM_PIN = 4 # physical pin 7
 
 bPhotoButtonLit = False
-bSnapPhotoButtonShouldFlash = True  
+bSnapPhotoButtonShouldFlash = True
+
+is_kiosk_mode = True
+current_kiosk_screen = 0 
 
 # pin numbering -- broadcom needed
 # https://gpiozero.readthedocs.io/en/stable/recipes.html#pin-numbering
@@ -237,6 +240,7 @@ def physical_button_pressed(event):
         photoProcessingState = 1
         logging.error("photoProcessingState is 1; not yet ready")
         print("Not yet ready")
+        countdown() 
 
 def update_label():
     lbl.configure(text="Great! One moment...")
@@ -244,6 +248,12 @@ def update_label():
 
 
 def countdown():
+    global current_kiosk_screen
+    current_kiosk_screen = 0 
+    global is_kiosk_mode
+    is_kiosk_mode = False 
+    global is_counting_down
+    is_counting_down = True 
     logging.info("COUNTDOWN called")
     hide_qr_code_prompt()
     
@@ -294,8 +304,9 @@ def countdown():
     update_status("heather","Getting photo from camera...")
     logging.info("Getting photo from camera")
     
-    updatePhoto("clearpixel.png")
+    updatePhoto("see-your-photos.png")
 
+    is_counting_down = False 
     #global root
     root.after(1100, update_label)
     root.after(1600, show_wait_indicator)
@@ -318,7 +329,7 @@ def countdown():
         updatePhoto(fileNameOrError)
         
         lbl.configure(text="Uploading...")
-        show_qr_code_prompt()
+        #show_qr_code_prompt()
         
         logging.info("Uploading %s to popsee", fileNameOrError)
 
@@ -356,15 +367,24 @@ def countdown():
     #updatePhoto("image2.jpg")
     #updatePhoto("camera.png")
     update_status("heather","Ready")
-    lbl.configure(text="READY FOR NEXT PHOTO... Just press the button!")
+    
+    is_kiosk_mode = True 
+    
+    lbl.configure(text=" ") # ready
     hide_wait_indicator()
     lbl.update()
     photoProcessingState = 2
     
-    show_qr_code_prompt()
-    
+    root.after(10000, show_qr_code_graphic)
+    #show_qr_code_prompt()
     
     bSnapPhotoButtonShouldFlash = True
+    
+def show_qr_code_graphic():
+    global is_counting_down
+    if (not is_counting_down):
+        updatePhoto("see-your-photos.png")
+        hide_qr_code_prompt()
     
 def show_qr_code_prompt():
     qr_code_prompt.grid(column=1, row=2, pady=(20,20), padx=(0,0))
@@ -425,11 +445,27 @@ def keypressed(event):
 def exit(e):
     root.destroy()
 
+def handleKioskMode():
+    global current_kiosk_screen 
+    global is_kiosk_mode 
+    if (is_kiosk_mode):
+        if (current_kiosk_screen == 0):
+            updatePhoto("press-button-to-start.png")
+            current_kiosk_screen = 1
+        else:
+            updatePhoto("see-your-photos.png")
+            current_kiosk_screen = 0
+    else:
+        x=1
+    root.after(10000, handleKioskMode)
+
 
 # delete files
 #deleteLocalImages()
 
 setupPhotoShoot()
+
+is_counting_down = False 
 
 #flashTakePhotoButton(10)
 
@@ -442,7 +478,7 @@ root.configure(background='black', borderwidth=0, border=0, highlightthickness=0
 # remove titlebar
 # root.overrideredirect(1)
 
-lbl = Label(root, text="Press the button to start the 5-second photo countdown!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
+lbl = Label(root, text="",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
 lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))
 update_status("heather","")
 
@@ -455,7 +491,7 @@ root.grid_columnconfigure(2, weight=1)
 
 
 canvas = Canvas(root, width = 900, height = 600, background='#000',highlightthickness=0, borderwidth=0, border=0) 
-updatePhoto("prompt.png")
+#updatePhoto("prompt.png")
 
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(2, weight=1)
@@ -483,6 +519,8 @@ maxFrames = 8
 bShowWaitIndicator = False 
 frames = [PhotoImage(file='sample.gif',format = 'gif -index %i' %(i)) for i in range(0, maxFrames)]
 waitindicator = Label(root, highlightthickness=0,borderwidth=0, highlightbackground='black')
+
+root.after(0, handleKioskMode)    
 
 
 root.bind("<Escape>", exit)
