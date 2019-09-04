@@ -26,7 +26,7 @@
 # arcade wait mode
 #     
 
-from takepictures import detectCamera, snapPhotoReliably, setupPhotoShoot
+from takepictures import resetUSB, gphotoReset, detectCamera, snapPhotoReliably, setupPhotoShoot
 from tkinter import *
 import time 
 from time import sleep
@@ -188,6 +188,11 @@ def fullReset():
     gphotoReset()
     setupPhotoShoot()
 
+def playChimeSound():
+    # requires mpg321 install first
+    subprocess.Popen(["mpg321","chime.mp3"])
+    return
+
 def playCameraSound():
     # requires mpg321 install first
     subprocess.Popen(["mpg321","camera.mp3"])
@@ -211,10 +216,8 @@ def reset_button_pressed(event):
 
 def physical_button_pressed(event):
     # time.sleep(.01)    # Wait a while for the pin to settle
-    print("pin %s's value is %s" % (BUTTON_BCM_PIN, GPIO.input(BUTTON_BCM_PIN)))
-    
-    
-    
+    #print("pin %s's value is %s" % (BUTTON_BCM_PIN, GPIO.input(BUTTON_BCM_PIN)))
+ 
     if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
         return 
     
@@ -229,11 +232,11 @@ def physical_button_pressed(event):
         lbl.update()
         return 
     
-    print(time.time())
+    #print(time.time())
     global photoProcessingState 
     #sleep(1) # debounce
-    print("button")
-    print(photoProcessingState)
+    #print("button")
+    #print(photoProcessingState)
     
     if (photoProcessingState == 2):
         photoProcessingState = 1
@@ -241,7 +244,7 @@ def physical_button_pressed(event):
     else:
         photoProcessingState = 1
         logging.error("photoProcessingState is 1; not yet ready")
-        print("Not yet ready")
+        #print("Not yet ready")
         countdown() 
 
 def update_label():
@@ -272,28 +275,34 @@ def countdown():
     #hideButton()
     lbl.configure(text="   ")
     lbl.update()
-    sleep(1)
     
+    
+    playChimeSound()
     updatePhoto("5.png")
     #lbl.configure(text="3...")
     #lbl.update()
     sleep(1)
     
+    playChimeSound()
     updatePhoto("4.png")
     #lbl.configure(text="3...")
     #lbl.update()
     sleep(1)
     
+    playChimeSound()
     updatePhoto("3.png")
     #lbl.configure(text="3...")
     #lbl.update()
     sleep(1)
+    
+    playChimeSound()
     updatePhoto("2.png")
     #lbl.configure(text="2...")
     #lbl.update()
     sleep(1)
     #lbl.configure(text="1...")
     #lbl.update()
+    playChimeSound()
     updatePhoto("1.png")
     sleep(0.8)
     
@@ -324,7 +333,23 @@ def countdown():
     logging.info("snapPhotoReliably result is:%s", fileNameOrError)
     
     print("fileNameOrError is:")
-    print(fileNameOrError)
+    print("["+fileNameOrError+"]")
+    
+    if (fileNameOrError == ""):
+        print("ERROR NEEDING RESET OCCURRED. ONE MOMENT.")
+        resetUSB()
+        gphotoReset()
+        deleteLocalImages()
+        print("An error occurred")
+        logging.error("An error occurred:%s", fileNameOrError)
+        lbl.configure(text="An error occurred. Please try again.")
+        update_status("heather","Error on last photo attempt. Please try again.")
+        lbl.update()
+        photoProcessingState = 2
+        flashLightOff()
+        hide_wait_indicator()
+        bSnapPhotoButtonShouldFlash = True 
+        return "Error"
     
 
 
