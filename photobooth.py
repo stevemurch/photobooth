@@ -211,7 +211,7 @@ def reset_button_pressed(event):
 
 def physical_button_pressed(event):
     # time.sleep(.01)    # Wait a while for the pin to settle
-    #print("pin %s's value is %s" % (BUTTON_BCM_PIN, GPIO.input(BUTTON_BCM_PIN)))
+    print("pin %s's value is %s" % (BUTTON_BCM_PIN, GPIO.input(BUTTON_BCM_PIN)))
     
     
     
@@ -225,6 +225,8 @@ def physical_button_pressed(event):
     if (not detectCamera()):
         logging.error("Cannot detect camera. Is it powered on?")
         update_status("heather","Camera not detected. Is it powered on?")
+        lbl.configure(text="Cannot detect camera. Is it powered on?")
+        lbl.update()
         return 
     
     print(time.time())
@@ -246,6 +248,9 @@ def update_label():
     lbl.configure(text="Great! One moment...")
     lbl.update()
 
+def show_upload_processing_graphic():
+    updatePhoto("see-your-photos.png")
+    
 
 def countdown():
     global current_kiosk_screen
@@ -304,11 +309,14 @@ def countdown():
     update_status("heather","Getting photo from camera...")
     logging.info("Getting photo from camera")
     
-    updatePhoto("see-your-photos.png")
+    
 
     is_counting_down = False 
     #global root
     root.after(1100, update_label)
+    root.after(2200, show_upload_processing_graphic)
+    
+    
     root.after(1600, show_wait_indicator)
     
     fileNameOrError = snapPhotoReliably()
