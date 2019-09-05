@@ -52,7 +52,7 @@ sleepTime = 0.1
 
 BUTTON_BCM_PIN = 22 # physical pin 15
 
-BUTTON_RESET_BCM_PIN = 18 # physical pin 12
+RELAY_CONTROL_PIN = 18 # physical pin 12
 
 SNAP_PHOTO_LED_BCM_PIN = 4 # physical pin 7
 
@@ -71,13 +71,23 @@ GPIO.setup(LED_BCM_PIN, GPIO.OUT)
 # LED on pushbutton
 GPIO.setup(SNAP_PHOTO_LED_BCM_PIN, GPIO.OUT)
 
+# RELAY CONTROL FOR LIGHTS JUST BEFORE SHOT
+GPIO.setup(RELAY_CONTROL_PIN, GPIO.OUT)
+
 # start button
 # set the default to high, pull up on default
 GPIO.setup(BUTTON_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 # reset button
-GPIO.setup(BUTTON_RESET_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+# GPIO.setup(BUTTON_RESET_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 photoProcessingState = 0 # 0=not set, 1=initializing, 2=ready for button, 3=processing
+
+def turnOffPhotoLighting():
+    GPIO.output(RELAY_CONTROL_PIN, GPIO.LOW)
+    
+def turnOnPhotoLighting():
+    GPIO.output(RELAY_CONTROL_PIN, GPIO.HIGH)
+
 
 # called by loop. if button should be flashing, toggle it. if it shouldn't turn it off.
 def handlePhotoButtonFlash():
@@ -199,8 +209,8 @@ def playCameraSound():
 
 def reset_button_pressed(event):
     logging.warning("reset_button_pressed")
-    if (GPIO.input(BUTTON_RESET_BCM_PIN)==1):  #ignore second one
-        return
+    #if (GPIO.input(BUTTON_RESET_BCM_PIN)==1):  #ignore second one
+    #    return
     
     logging.warning("Initiating a reset of the board.")
     
@@ -273,8 +283,12 @@ def countdown():
     global photoProcessingState
     photoProcessingState = 0
     #hideButton()
-    lbl.configure(text="   ")
+    lbl.configure(text=" READY?  ")
     lbl.update()
+    
+    turnOnPhotoLighting()
+    # display "READY?"
+    sleep(1)
     
     
     playChimeSound()
@@ -288,6 +302,8 @@ def countdown():
     #lbl.configure(text="3...")
     #lbl.update()
     sleep(1)
+    
+    
     
     playChimeSound()
     updatePhoto("3.png")
@@ -312,6 +328,7 @@ def countdown():
     flashLightOn()
     #playCameraSound()
     
+
     
     
     # update the web album on popsee 
@@ -325,6 +342,7 @@ def countdown():
     root.after(1100, update_label)
     root.after(2200, show_upload_processing_graphic)
     
+    root.after(2000, turnOffPhotoLighting)
     
     root.after(1600, show_wait_indicator)
     
@@ -542,7 +560,7 @@ update_status("heather","Ready")
 # detect 3..2..1 button
 GPIO.add_event_detect(BUTTON_BCM_PIN, GPIO.BOTH, callback=physical_button_pressed, bouncetime=500)
 # detect reset button
-GPIO.add_event_detect(BUTTON_RESET_BCM_PIN, GPIO.BOTH, callback=reset_button_pressed, bouncetime=500)
+#GPIO.add_event_detect(BUTTON_RESET_BCM_PIN, GPIO.BOTH, callback=reset_button_pressed, bouncetime=500)
 
 # wait indicator on SnapPhoto button
 root.after(1000, handlePhotoButtonFlash)
