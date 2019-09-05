@@ -13,7 +13,6 @@
 
 # LED on BOARD PIN 13
 
-
 # Terrific gphoto2 updater: https://github.com/gonzalo/gphoto2-updater
 
 # USBReset because gphoto2 is flaky
@@ -36,13 +35,12 @@ from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import os, glob
 from postimage import send_data_to_server, update_status
+from secret import *
 
 import logging
 
 os.chdir("/home/pi/Desktop/photobooth")
-
 logging.basicConfig(level=logging.DEBUG, filename='photobooth.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
-
 logging.info("Initializing")
 
 GPIO.setmode(GPIO.BCM) # broadcom
@@ -215,7 +213,7 @@ def reset_button_pressed(event):
     logging.warning("Initiating a reset of the board.")
     
     print("RESET!")
-    update_status("heather","Reset button pressed. One moment; rebooting photo booth...")
+    update_status(albumCode, "Reset button pressed. One moment; rebooting photo booth...")
     print("resetting usb")
     sudoPassword="raspberry"
     command = 'reboot'.split()
@@ -225,9 +223,6 @@ def reset_button_pressed(event):
     
 
 def physical_button_pressed(event):
-    # time.sleep(.01)    # Wait a while for the pin to settle
-    #print("pin %s's value is %s" % (BUTTON_BCM_PIN, GPIO.input(BUTTON_BCM_PIN)))
- 
     if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
         return 
     
@@ -237,16 +232,13 @@ def physical_button_pressed(event):
     
     if (not detectCamera()):
         logging.error("Cannot detect camera. Is it powered on?")
-        update_status("heather","Camera not detected. Is it powered on?")
+        update_status(albumCode,"Camera not detected. Is it powered on?")
         lbl.configure(text="Cannot detect camera. Is it powered on?")
         lbl.update()
         return 
     
     #print(time.time())
     global photoProcessingState 
-    #sleep(1) # debounce
-    #print("button")
-    #print(photoProcessingState)
     
     if (photoProcessingState == 2):
         photoProcessingState = 1
@@ -278,7 +270,7 @@ def countdown():
     global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False
     
-    update_status("heather","Taking a new picture...")
+    update_status(albumCode,"Taking a new picture...")
     
     global photoProcessingState
     photoProcessingState = 0
@@ -288,58 +280,41 @@ def countdown():
     
     turnOnPhotoLighting()
     # display "READY?"
-    sleep(1)
+    sleep(5)
+    lbl.configure(text="  ")
+    lbl.update()
     
     
     playChimeSound()
     updatePhoto("5.png")
-    #lbl.configure(text="3...")
-    #lbl.update()
     sleep(1)
     
     playChimeSound()
     updatePhoto("4.png")
-    #lbl.configure(text="3...")
-    #lbl.update()
     sleep(1)
-    
-    
     
     playChimeSound()
     updatePhoto("3.png")
-    #lbl.configure(text="3...")
-    #lbl.update()
     sleep(1)
     
     playChimeSound()
     updatePhoto("2.png")
-    #lbl.configure(text="2...")
-    #lbl.update()
     sleep(1)
-    #lbl.configure(text="1...")
-    #lbl.update()
+    
     playChimeSound()
     updatePhoto("1.png")
     sleep(0.8)
     
-    
-    
-    
     flashLightOn()
-    #playCameraSound()
-    
-
-    
     
     # update the web album on popsee 
-    update_status("heather","Getting photo from camera...")
+    update_status(albumCode,"Getting photo from camera...")
     logging.info("Getting photo from camera")
     
-    
-
     is_counting_down = False 
     #global root
     root.after(1100, update_label)
+    
     root.after(2200, show_upload_processing_graphic)
     
     root.after(2000, turnOffPhotoLighting)
@@ -361,7 +336,7 @@ def countdown():
         print("An error occurred")
         logging.error("An error occurred:%s", fileNameOrError)
         lbl.configure(text="An error occurred. Please try again.")
-        update_status("heather","Error on last photo attempt. Please try again.")
+        update_status(albumCode,"Error on last photo attempt. Please try again.")
         lbl.update()
         photoProcessingState = 2
         flashLightOff()
@@ -369,10 +344,8 @@ def countdown():
         bSnapPhotoButtonShouldFlash = True 
         return "Error"
     
-
-
     if ("error" not in fileNameOrError) and ("Error" not in fileNameOrError) :
-        update_status("heather","Your photo is on its way...")
+        update_status(albumCode,"Your photo is on its way...")
         logging.info("Got what looks like a filename from camera:%s", fileNameOrError)
 
         print("sending file to server")
@@ -395,29 +368,15 @@ def countdown():
         print("An error occurred")
         logging.error("An error occurred:%s", fileNameOrError)
         lbl.configure(text="An error occurred. Please try again.")
-        update_status("heather","Error on last photo attempt. Please try again.")
+        update_status(albumCode,"Error on last photo attempt. Please try again.")
         lbl.update()
         photoProcessingState = 2
         flashLightOff()
         hide_wait_indicator()
-        bSnapPhotoButtonShouldFlash = True 
-        
+        bSnapPhotoButtonShouldFlash = True  
         return 
     
-    #playCameraSound()
-    #takePhotoWithGPhoto2()
-
-    #updatePhoto("wait.jpg")
-    #sleep(0.25)
-    #lbl.update()
-
-    
-
-    
-    #sleep(2)
-    #updatePhoto("image2.jpg")
-    #updatePhoto("camera.png")
-    update_status("heather","Ready")
+    update_status(albumCode,"Ready")
     
     is_kiosk_mode = True 
     
@@ -425,10 +384,7 @@ def countdown():
     hide_wait_indicator()
     lbl.update()
     photoProcessingState = 2
-    
     root.after(10000, show_qr_code_graphic)
-    #show_qr_code_prompt()
-    
     bSnapPhotoButtonShouldFlash = True
     
 def show_qr_code_graphic():
@@ -449,10 +405,6 @@ def clicked():
     
     countdown()
     #add_button()
-
-#def add_button():
-    #btn.grid(column=0, row=2)
-
 
 def update_wait_indicator(ind):
     global bShowWaitIndicator
@@ -510,16 +462,14 @@ def handleKioskMode():
         x=1
     root.after(10000, handleKioskMode)
 
-
 # delete files
-#deleteLocalImages()
+# deleteLocalImages()
 
 setupPhotoShoot()
 
 is_counting_down = False 
 
 #flashTakePhotoButton(10)
-
 # set up TKinter window
 root = Tk()
 root.geometry('1820x950')
@@ -531,36 +481,23 @@ root.configure(background='black', borderwidth=0, border=0, highlightthickness=0
 
 lbl = Label(root, text="",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
 lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))
-update_status("heather","")
+update_status(albumCode,"")
 
 qr_code_prompt = Label(root, text="Scan the QR code to see the photos on your phone!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
 
-
-
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(2, weight=1)
-
 
 canvas = Canvas(root, width = 900, height = 600, background='#000',highlightthickness=0, borderwidth=0, border=0) 
-#updatePhoto("prompt.png")
 
 root.grid_columnconfigure(0, weight=1)
 root.grid_columnconfigure(2, weight=1)
 
-#img = ImageTk.PhotoImage(Image.open("camera.png"))      
-#canvas.create_image(0,0, anchor=NW, image=img) 
-#canvas.grid(column=0,row=1, padx=(0, 0), pady=(50, 50))
-
-#btn = Button(root, text="Take Photo", command=clicked)
-#btn.grid(column=0, row=2)
-
 photoProcessingState = 2 # ready for input
-update_status("heather","Ready")
+update_status(albumCode,"Ready")
 
 # detect 3..2..1 button
 GPIO.add_event_detect(BUTTON_BCM_PIN, GPIO.BOTH, callback=physical_button_pressed, bouncetime=500)
-# detect reset button
-#GPIO.add_event_detect(BUTTON_RESET_BCM_PIN, GPIO.BOTH, callback=reset_button_pressed, bouncetime=500)
 
 # wait indicator on SnapPhoto button
 root.after(1000, handlePhotoButtonFlash)
@@ -573,14 +510,10 @@ waitindicator = Label(root, highlightthickness=0,borderwidth=0, highlightbackgro
 
 root.after(0, handleKioskMode)    
 
-
 root.bind("<Escape>", exit)
 root.bind('<Key>', keypressed)
 
-
 root.mainloop()
-
-
 
 print("Goodbye...")
 GPIO.cleanup()
