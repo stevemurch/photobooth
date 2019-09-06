@@ -203,7 +203,8 @@ def playChimeSound():
 
 def playCameraSound():
     # requires mpg321 install first
-    subprocess.Popen(["mpg321","camera.mp3"])
+    #subprocess.Popen(["mpg321","camera.mp3"])
+    return
 
 def reset_button_pressed(event):
     logging.warning("reset_button_pressed")
@@ -297,11 +298,11 @@ def countdown():
     updatePhoto("3.png")
     sleep(1)
     
-    playChimeSound()
+    #playChimeSound()
     updatePhoto("2.png")
     sleep(1)
     
-    playChimeSound()
+    #playChimeSound()
     updatePhoto("1.png")
     sleep(0.8)
     
