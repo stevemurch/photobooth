@@ -48,6 +48,8 @@ GPIO.setmode(GPIO.BCM) # broadcom
 LED_BCM_PIN = 27 # physical pin number 13
 sleepTime = 0.1
 
+photo_round = 0
+
 BUTTON_BCM_PIN = 22 # physical pin 15
 
 RELAY_CONTROL_PIN = 18 # physical pin 12
@@ -176,6 +178,34 @@ def updatePhoto(filename):
     canvas.create_image(0,0, anchor=NW, image=img) 
     canvas.grid(column=1,row=1,padx=(0,0), pady=(0,0))
     canvas.update()
+    
+def updateBottomPhoto(filename):
+    
+    global img2
+    n = 1
+    same = True 
+    
+    path = filename
+    image = Image.open(path)
+    [imageSizeWidth, imageSizeHeight] = image.size
+    newImageSizeWidth = int(imageSizeWidth*n)
+    if same:
+        newImageSizeHeight = int(imageSizeHeight*n)
+    else:
+        newImageSizeHeight = int(imageSizeHeight/n) 
+
+    #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
+    image = image.resize((900, 200), Image.ANTIALIAS)
+    img2 = ImageTk.PhotoImage(image)
+    
+    #print("updating image...")
+    #global img
+    #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
+    #resized = img.zoom(1000,500)
+    
+    bottom_canvas.create_image(0,0, anchor=NW, image=img2) 
+    bottom_canvas.grid(column=1,row=4,padx=(0,0), pady=(0,0))
+    bottom_canvas.update()
 
 def flashLightOn():
     #GPIO.setwarnings(False)
@@ -260,15 +290,25 @@ def show_upload_processing_graphic():
 def show_got_it():
     updatePhoto("got-it.png")
 
+def clearBottomPhoto():
+    updateBottomPhoto("clearpixel.png")
+
+def update_and_show_photo_round():
+    updatePhotoRound()
+    showPhotoRound()
+
+
 def countdown():
     global current_kiosk_screen
-    current_kiosk_screen = 0 
+    current_kiosk_screen = 0
     global is_kiosk_mode
     is_kiosk_mode = False 
     global is_counting_down
     is_counting_down = True 
     logging.info("COUNTDOWN called")
     hide_qr_code_prompt()
+    
+    updateBottomPhoto("clearpixel.png")
     
     global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False
@@ -281,6 +321,8 @@ def countdown():
     #lbl.configure(text=" READY?  ")
     #lbl.update()
     updatePhoto("get-ready.png")
+    showPhotoRound()
+    
     sleep(2)
     
     turnOnPhotoLighting()
@@ -321,7 +363,13 @@ def countdown():
     #global root
     root.after(1100, update_label)
     
+    root.after(1100, update_and_show_photo_round)
+    
     root.after(1500, show_got_it)
+    
+
+    
+    root.after(1500, clearBottomPhoto)
     
     root.after(3500, show_upload_processing_graphic)
     
@@ -392,6 +440,14 @@ def countdown():
     hide_wait_indicator()
     lbl.update()
     photoProcessingState = 2
+    
+    
+    global photo_round
+    if (photo_round > 1):
+        countdown()
+        return
+    
+    
     root.after(10000, show_qr_code_graphic)
     bSnapPhotoButtonShouldFlash = True
     
@@ -470,6 +526,23 @@ def handleKioskMode():
         x=1
     root.after(10000, handleKioskMode)
 
+def showPhotoRound():
+    global photo_round
+    fileToShow = str(photo_round)+"-of-3.png"
+    updateBottomPhoto(fileToShow)
+    
+
+def updatePhotoRound():
+    global photo_round
+    if (photo_round == 3):
+        photo_round = 0
+    
+    photo_round = photo_round + 1
+    
+    
+    
+    
+
 # delete files
 # deleteLocalImages()
 
@@ -520,6 +593,10 @@ root.after(0, handleKioskMode)
 
 root.bind("<Escape>", exit)
 root.bind('<Key>', keypressed)
+
+bottom_canvas = Canvas(root, width = 900, height = 200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
+
+updatePhotoRound()
 
 root.mainloop()
 
