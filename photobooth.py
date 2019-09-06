@@ -257,6 +257,8 @@ def update_label():
 def show_upload_processing_graphic():
     updatePhoto("see-your-photos.png")
     
+def show_got_it():
+    updatePhoto("got-it.png")
 
 def countdown():
     global current_kiosk_screen
@@ -276,8 +278,10 @@ def countdown():
     global photoProcessingState
     photoProcessingState = 0
     #hideButton()
-    lbl.configure(text=" READY?  ")
-    lbl.update()
+    #lbl.configure(text=" READY?  ")
+    #lbl.update()
+    updatePhoto("get-ready.png")
+    sleep(2)
     
     turnOnPhotoLighting()
     # display "READY?"
@@ -305,6 +309,7 @@ def countdown():
     #playChimeSound()
     updatePhoto("1.png")
     sleep(0.8)
+    updatePhoto("clearpixel.png")
     
     flashLightOn()
     
@@ -316,7 +321,9 @@ def countdown():
     #global root
     root.after(1100, update_label)
     
-    root.after(2200, show_upload_processing_graphic)
+    root.after(1500, show_got_it)
+    
+    root.after(3500, show_upload_processing_graphic)
     
     root.after(2000, turnOffPhotoLighting)
     
@@ -353,7 +360,7 @@ def countdown():
         print(fileNameOrError)
         updatePhoto(fileNameOrError)
         
-        lbl.configure(text="Uploading...")
+        lbl.configure(text="See your photos at popsee.com, album code \"heather\"")
         #show_qr_code_prompt()
         
         logging.info("Uploading %s to popsee", fileNameOrError)
