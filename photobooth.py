@@ -299,6 +299,7 @@ def update_and_show_photo_round():
 
 
 def countdown():
+    global photo_round
     global current_kiosk_screen
     current_kiosk_screen = 0
     global is_kiosk_mode
@@ -327,18 +328,24 @@ def countdown():
     
     turnOnPhotoLighting()
     # display "READY?"
-    sleep(5)
+    
+    if (photo_round==1):
+        sleep(5)
+    else:
+        sleep(2)
+        
     lbl.configure(text="  ")
     lbl.update()
     
     
-    playChimeSound()
-    updatePhoto("5.png")
-    sleep(1)
+    if (photo_round==1):
+        playChimeSound()
+        updatePhoto("5.png")
+        sleep(1)
     
-    playChimeSound()
-    updatePhoto("4.png")
-    sleep(1)
+        playChimeSound()
+        updatePhoto("4.png")
+        sleep(1)
     
     playChimeSound()
     updatePhoto("3.png")
@@ -442,7 +449,7 @@ def countdown():
     photoProcessingState = 2
     
     
-    global photo_round
+    
     if (photo_round > 1):
         countdown()
         return
