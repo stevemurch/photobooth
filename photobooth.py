@@ -216,9 +216,6 @@ def flashLightOn():
 def flashLightOff():
     print("LED off")
     GPIO.output(LED_BCM_PIN, GPIO.LOW)
-
-
-    
     
 def fullReset():
     logging.warning("fullReset called")
@@ -249,9 +246,6 @@ def reset_button_pressed(event):
     sudoPassword="raspberry"
     command = 'reboot'.split()
     p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
-
-
-    
 
 def physical_button_pressed(event):
     if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
@@ -296,7 +290,6 @@ def clearBottomPhoto():
 def update_and_show_photo_round():
     updatePhotoRound()
     showPhotoRound()
-
 
 def countdown():
     global photo_round
