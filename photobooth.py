@@ -331,14 +331,14 @@ def countdown():
     lbl.update()
     
     
-    if (photo_round==1):
-        playChimeSound()
-        updatePhoto("5.png")
-        sleep(1)
-    
-        playChimeSound()
-        updatePhoto("4.png")
-        sleep(1)
+    #if (photo_round==1):
+    playChimeSound()
+    updatePhoto("5.png")
+    sleep(1)
+
+    playChimeSound()
+    updatePhoto("4.png")
+    sleep(1)
     
     playChimeSound()
     updatePhoto("3.png")
@@ -448,7 +448,7 @@ def countdown():
         return
     
     
-    root.after(10000, show_qr_code_graphic)
+    #root.after(5000, show_qr_code_graphic)
     bSnapPhotoButtonShouldFlash = True
     
 def show_qr_code_graphic():
@@ -517,7 +517,7 @@ def handleKioskMode():
     global is_kiosk_mode 
     if (is_kiosk_mode):
         if (current_kiosk_screen == 0):
-            updatePhoto("press-button-to-start.png")
+            updatePhoto("free-photo-booth-press-start.png")
             current_kiosk_screen = 1
         else:
             updatePhoto("see-your-photos.png")
