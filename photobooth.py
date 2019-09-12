@@ -361,9 +361,9 @@ def countdown():
     
     is_counting_down = False 
     #global root
-    root.after(1100, update_label)
+    #root.after(1100, update_label)
     
-    root.after(1100, update_and_show_photo_round)
+    #root.after(1100, update_and_show_photo_round)
     
     root.after(1500, show_got_it)
     
@@ -408,7 +408,7 @@ def countdown():
         print(fileNameOrError)
         updatePhoto(fileNameOrError)
         
-        lbl.configure(text="See your photos at popsee.com, album code \"heather\"")
+        # lbl.configure(text="See your photos at popsee.com, album code \"heather\"")
         #show_qr_code_prompt()
         
         logging.info("Uploading %s to popsee", fileNameOrError)
@@ -417,14 +417,15 @@ def countdown():
         upload_response = send_data_to_server(fileNameOrError)
         hide_wait_indicator()
         print(upload_response)
+        updatePhotoRound()
         logging.info("response from upload: %s", upload_response)
         flashLightOff()
         
     else:
         print("An error occurred")
         logging.error("An error occurred:%s", fileNameOrError)
-        lbl.configure(text="An error occurred. Please try again.")
-        update_status(albumCode,"Error on last photo attempt. Please try again.")
+        lbl.configure(text="An error occurred. Trying again.")
+        update_status(albumCode,"Error on last photo attempt. Trying again.")
         lbl.update()
         photoProcessingState = 2
         flashLightOff()
