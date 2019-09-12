@@ -7,14 +7,10 @@ root - INFO - update photo to free-photo-booth-press-start.png
 PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
 PIL.PngImagePlugin - DEBUG - STREAM b'tEXt' 41 25
 PIL.PngImagePlugin - DEBUG - STREAM b'iTXt' 78 886
-PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 976 425729
+PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 976 54608
 root - INFO - physical_button_pressed called
 root - ERROR - photoProcessingState is 1; not yet ready
 root - INFO - COUNTDOWN called
-PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-PIL.PngImagePlugin - DEBUG - STREAM b'PLTE' 41 3
-PIL.PngImagePlugin - DEBUG - STREAM b'tRNS' 56 1
-PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 69 10
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
 root - INFO - update photo to get-ready.png
@@ -59,32 +55,24 @@ PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
 PIL.PngImagePlugin - DEBUG - STREAM b'tEXt' 41 25
 PIL.PngImagePlugin - DEBUG - STREAM b'iTXt' 78 806
 PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 896 8437
-PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-PIL.PngImagePlugin - DEBUG - STREAM b'PLTE' 41 3
-PIL.PngImagePlugin - DEBUG - STREAM b'tRNS' 56 1
-PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 69 10
 root - INFO - update photo to see-your-photos.png
 PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
 PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 41 9
 PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 62 8192
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
-root - INFO - snapPhotoReliably result is:DSCF0007.jpg
+root - INFO - snapPhotoReliably result is:DSCF0018.jpg
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
-root - INFO - Got what looks like a filename from camera:DSCF0007.jpg
-root - INFO - update photo to DSCF0007.jpg
-root - INFO - Uploading DSCF0007.jpg to popsee
+root - INFO - Got what looks like a filename from camera:DSCF0018.jpg
+root - INFO - update photo to DSCF0018.jpg
+root - INFO - Uploading DSCF0018.jpg to popsee
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/image HTTP/1.1" 200 None
-root - INFO - response from upload: {"count":1,"code":"heather","size":12025116,"url":"https://chatsparkstorageaccount.blob.core.windows.net/image/heather-2019-09-12-tmp6FD.jpg","mediaId":"5d7a77b58f207e2524936267"}
+root - INFO - response from upload: {"count":1,"code":"heather","size":12054912,"url":"https://chatsparkstorageaccount.blob.core.windows.net/image/heather-2019-09-12-tmp1D88.jpg","mediaId":"5d7a87188f207e252493627b"}
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
 root - INFO - COUNTDOWN called
-PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-PIL.PngImagePlugin - DEBUG - STREAM b'PLTE' 41 3
-PIL.PngImagePlugin - DEBUG - STREAM b'tRNS' 56 1
-PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 69 10
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
 root - INFO - update photo to get-ready.png
@@ -129,32 +117,24 @@ PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
 PIL.PngImagePlugin - DEBUG - STREAM b'tEXt' 41 25
 PIL.PngImagePlugin - DEBUG - STREAM b'iTXt' 78 806
 PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 896 8437
-PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-PIL.PngImagePlugin - DEBUG - STREAM b'PLTE' 41 3
-PIL.PngImagePlugin - DEBUG - STREAM b'tRNS' 56 1
-PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 69 10
 root - INFO - update photo to see-your-photos.png
 PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
 PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 41 9
 PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 62 8192
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
-root - INFO - snapPhotoReliably result is:DSCF0008.jpg
+root - INFO - snapPhotoReliably result is:DSCF0019.jpg
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
-root - INFO - Got what looks like a filename from camera:DSCF0008.jpg
-root - INFO - update photo to DSCF0008.jpg
-root - INFO - Uploading DSCF0008.jpg to popsee
+root - INFO - Got what looks like a filename from camera:DSCF0019.jpg
+root - INFO - update photo to DSCF0019.jpg
+root - INFO - Uploading DSCF0019.jpg to popsee
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/image HTTP/1.1" 200 None
-root - INFO - response from upload: {"count":1,"code":"heather","size":12018105,"url":"https://chatsparkstorageaccount.blob.core.windows.net/image/heather-2019-09-12-tmp8B14.jpg","mediaId":"5d7a77d78f207e2524936268"}
+root - INFO - response from upload: {"count":1,"code":"heather","size":12020188,"url":"https://chatsparkstorageaccount.blob.core.windows.net/image/heather-2019-09-12-tmpB8A1.jpg","mediaId":"5d7a873f8f207e252493627c"}
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
 root - INFO - COUNTDOWN called
-PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
-PIL.PngImagePlugin - DEBUG - STREAM b'PLTE' 41 3
-PIL.PngImagePlugin - DEBUG - STREAM b'tRNS' 56 1
-PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 69 10
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
 root - INFO - update photo to get-ready.png
@@ -209,19 +189,29 @@ PIL.PngImagePlugin - DEBUG - STREAM b'pHYs' 41 9
 PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 62 8192
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
-root - INFO - snapPhotoReliably result is:DSCF0009.jpg
+root - INFO - snapPhotoReliably result is:DSCF0020.jpg
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
-root - INFO - Got what looks like a filename from camera:DSCF0009.jpg
-root - INFO - update photo to DSCF0009.jpg
-root - INFO - Uploading DSCF0009.jpg to popsee
+root - INFO - Got what looks like a filename from camera:DSCF0020.jpg
+root - INFO - update photo to DSCF0020.jpg
+root - INFO - Uploading DSCF0020.jpg to popsee
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/image HTTP/1.1" 200 None
-root - INFO - response from upload: {"count":1,"code":"heather","size":11436167,"url":"https://chatsparkstorageaccount.blob.core.windows.net/image/heather-2019-09-12-tmpE6F.jpg","mediaId":"5d7a77f88f207e2524936269"}
+root - INFO - response from upload: {"count":1,"code":"heather","size":12049955,"url":"https://chatsparkstorageaccount.blob.core.windows.net/image/heather-2019-09-12-tmp3E1F.jpg","mediaId":"5d7a87608f207e252493627d"}
 urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
 urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
 root - INFO - update photo to free-photo-booth-press-start.png
 PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
 PIL.PngImagePlugin - DEBUG - STREAM b'tEXt' 41 25
 PIL.PngImagePlugin - DEBUG - STREAM b'iTXt' 78 886
-PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 976 425729
+PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 976 54608
+root - INFO - update photo to free-photo-booth-press-start.png
+PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+PIL.PngImagePlugin - DEBUG - STREAM b'tEXt' 41 25
+PIL.PngImagePlugin - DEBUG - STREAM b'iTXt' 78 886
+PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 976 54608
+root - INFO - update photo to free-photo-booth-press-start.png
+PIL.PngImagePlugin - DEBUG - STREAM b'IHDR' 16 13
+PIL.PngImagePlugin - DEBUG - STREAM b'tEXt' 41 25
+PIL.PngImagePlugin - DEBUG - STREAM b'iTXt' 78 886
+PIL.PngImagePlugin - DEBUG - STREAM b'IDAT' 976 54608

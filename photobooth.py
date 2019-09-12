@@ -195,7 +195,7 @@ def updateBottomPhoto(filename):
         newImageSizeHeight = int(imageSizeHeight/n) 
 
     #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
-    image = image.resize((900, 200), Image.ANTIALIAS)
+    image = image.resize((400, 100), Image.ANTIALIAS)
     img2 = ImageTk.PhotoImage(image)
     
     #print("updating image...")
@@ -204,7 +204,7 @@ def updateBottomPhoto(filename):
     #resized = img.zoom(1000,500)
     
     bottom_canvas.create_image(0,0, anchor=NW, image=img2) 
-    bottom_canvas.grid(column=1,row=4,padx=(0,0), pady=(0,0))
+    bottom_canvas.grid(column=1,row=3, padx=(510,0), pady=(0,0))
     bottom_canvas.update()
 
 def flashLightOn():
@@ -302,7 +302,7 @@ def countdown():
     logging.info("COUNTDOWN called")
     hide_qr_code_prompt()
     
-    updateBottomPhoto("clearpixel.png")
+    #updateBottomPhoto("clearpixel.png")
     
     global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False
@@ -368,8 +368,8 @@ def countdown():
     root.after(1500, show_got_it)
     
 
-    
-    root.after(1500, clearBottomPhoto)
+    if (photo_round == 3): 
+        root.after(1500, clearBottomPhoto)
     
     root.after(3500, show_upload_processing_graphic)
     
@@ -491,7 +491,7 @@ def update_wait_indicator(ind):
 def show_wait_indicator():
     global bShowWaitIndicator
     bShowWaitIndicator = True
-    waitindicator.grid(column=1, row=3, pady=(20,20), padx=(0,0))
+    waitindicator.grid(column=1, row=0, pady=(0,0), padx=(0,0))
     # show wait indicator
     root.after(0, update_wait_indicator, 0)
 
@@ -517,12 +517,12 @@ def handleKioskMode():
     global current_kiosk_screen 
     global is_kiosk_mode 
     if (is_kiosk_mode):
-        if (current_kiosk_screen == 0):
-            updatePhoto("free-photo-booth-press-start.png")
-            current_kiosk_screen = 1
-        else:
-            updatePhoto("see-your-photos.png")
-            current_kiosk_screen = 0
+        #if (current_kiosk_screen == 0):
+        updatePhoto("free-photo-booth-press-start.png")
+        #    current_kiosk_screen = 1
+        #else:
+        #    updatePhoto("see-your-photos.png")
+        #    current_kiosk_screen = 0
     else:
         x=1
     root.after(10000, handleKioskMode)
