@@ -415,8 +415,8 @@ def countdown():
 
         lbl.update()
         upload_response = send_data_to_server_async(fileNameOrError)
+        time.sleep(3)
         hide_wait_indicator()
-        time.sleep()
         print(upload_response)
         updatePhotoRound()
         logging.info("response from upload: %s", upload_response)
