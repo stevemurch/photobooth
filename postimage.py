@@ -3,6 +3,13 @@ import requests
 import os
 from secret import *
 import aiohttp
+from threading import Thread
+
+def send_data_to_server_async(image_path):
+    t = Thread(target=send_data_to_server, args=(image_path,))
+    t.start()
+    return "Queued"
+
 
 def send_data_to_server(image_path):
     try:

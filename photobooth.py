@@ -34,7 +34,7 @@ from subprocess import check_output, Popen, PIPE
 from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import os, glob
-from postimage import send_data_to_server, update_status
+from postimage import send_data_to_server, send_data_to_server_async, update_status
 from secret import *
 
 import logging
@@ -371,7 +371,7 @@ def countdown():
     if (photo_round == 3): 
         root.after(1500, clearBottomPhoto)
     
-    root.after(3500, show_upload_processing_graphic)
+    #root.after(3500, show_upload_processing_graphic)
     
     root.after(2000, turnOffPhotoLighting)
     
@@ -414,8 +414,9 @@ def countdown():
         logging.info("Uploading %s to popsee", fileNameOrError)
 
         lbl.update()
-        upload_response = send_data_to_server(fileNameOrError)
+        upload_response = send_data_to_server_async(fileNameOrError)
         hide_wait_indicator()
+        time.sleep()
         print(upload_response)
         updatePhotoRound()
         logging.info("response from upload: %s", upload_response)
