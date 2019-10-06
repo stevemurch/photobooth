@@ -3,6 +3,7 @@ import requests
 import os
 from secret import *
 import aiohttp
+import json 
 from threading import Thread
 
 def send_data_to_server_async(image_path):
@@ -18,10 +19,17 @@ def send_data_to_server(image_path):
         response = requests.post(postImageUrl, files=multipart_form_data)
         print(response.text)
         print(response.status_code)
+        update_status(albumCode, "Uploaded with status code "+str(response.status_code))
+        
+        print("response code from server is:")
+        print(json_response)
         return response.text 
     except:
-        update_status(albumCode,"An exception occurred in upload: "+response.text)
+        
+        update_status(albumCode, "An exception occurred in upload!")
         print("An exception occurred in upload")
+        parsed = json.loads(response.content)
+        print (parsed)
         return "Error"
 
 def update_status(code, message):

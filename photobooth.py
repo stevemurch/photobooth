@@ -179,6 +179,38 @@ def updatePhoto(filename):
     canvas.grid(column=1,row=1,padx=(0,0), pady=(0,0))
     canvas.update()
     
+def updatePhotoFull(filename):
+    logging.info("update photo to %s", filename)
+    
+    global photoProcessingState
+    photoProcessingState = 1
+    
+    global imgFull
+    n = 1
+    same = True 
+    
+    path = filename
+    image = Image.open(path)
+    [imageSizeWidth, imageSizeHeight] = image.size
+    newImageSizeWidth = int(imageSizeWidth*n)
+    if same:
+        newImageSizeHeight = int(imageSizeHeight*n)
+    else:
+        newImageSizeHeight = int(imageSizeHeight/n) 
+
+    #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
+    image = image.resize((1440, 900), Image.ANTIALIAS)
+    imgFull = ImageTk.PhotoImage(image)
+    
+    #print("updating image...")
+    #global img
+    #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
+    #resized = img.zoom(1000,500)
+    
+    canvas.create_image(0,0, anchor=NW, image=imgFull) 
+    canvas.grid(column=0,row=0,padx=(0,0), pady=(0,0))
+    canvas.update()
+    
 def updateBottomPhoto(filename):
     
     global img2
@@ -228,6 +260,12 @@ def playChimeSound():
     subprocess.Popen(["mpg321","chime.mp3"])
     return
 
+def playGetReadySound():
+    # requires mpg321 install first
+    subprocess.Popen(["mpg321","get-ready.mp3"])
+    return
+
+
 def playCameraSound():
     # requires mpg321 install first
     #subprocess.Popen(["mpg321","camera.mp3"])
@@ -258,8 +296,8 @@ def physical_button_pressed(event):
     if (not detectCamera()):
         logging.error("Cannot detect camera. Is it powered on?")
         update_status(albumCode,"Camera not detected. Is it powered on?")
-        lbl.configure(text="Cannot detect camera. Is it powered on?")
-        lbl.update()
+        #lbl.configure(text="Cannot detect camera. Is it powered on?")
+        #lbl.update()
         return 
     
     #print(time.time())
@@ -275,14 +313,15 @@ def physical_button_pressed(event):
         countdown() 
 
 def update_label():
-    lbl.configure(text="Great! One moment...")
-    lbl.update()
+    #lbl.configure(text="Great! One moment...")
+    #lbl.update()
+    xxx=1
 
 def show_upload_processing_graphic():
-    updatePhoto("see-your-photos.png")
+    updatePhotoFull("see-your-photos.png")
     
 def show_got_it():
-    updatePhoto("got-it.png")
+    updatePhotoFull("got-it.png")
 
 def clearBottomPhoto():
     updateBottomPhoto("clearpixel.png")
@@ -300,9 +339,9 @@ def countdown():
     global is_counting_down
     is_counting_down = True 
     logging.info("COUNTDOWN called")
-    hide_qr_code_prompt()
+    #hide_qr_code_prompt()
     
-    #updateBottomPhoto("clearpixel.png")
+    updatePhotoFull("clearpixel.png")
     
     global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False
@@ -314,7 +353,10 @@ def countdown():
     #hideButton()
     #lbl.configure(text=" READY?  ")
     #lbl.update()
-    updatePhoto("get-ready.png")
+    #updatePhotoFull("get-ready.png")
+    if (photo_round==1):
+        playGetReadySound()
+    
     showPhotoRound()
     
     sleep(2)
@@ -327,31 +369,33 @@ def countdown():
     else:
         sleep(2)
         
-    lbl.configure(text="  ")
-    lbl.update()
+    #lbl.configure(text="  ")
+    #lbl.update()
     
     
     #if (photo_round==1):
-    playChimeSound()
-    updatePhoto("5.png")
-    sleep(1)
-
-    playChimeSound()
-    updatePhoto("4.png")
-    sleep(1)
     
+    updatePhotoFull("5.png")
     playChimeSound()
-    updatePhoto("3.png")
-    sleep(1)
-    
-    #playChimeSound()
-    updatePhoto("2.png")
-    sleep(1)
-    
-    #playChimeSound()
-    updatePhoto("1.png")
     sleep(0.8)
-    updatePhoto("clearpixel.png")
+
+    
+    updatePhotoFull("4.png")
+    playChimeSound()
+    sleep(0.8)
+    
+    updatePhotoFull("3.png")
+    playChimeSound()
+    sleep(0.8)
+    
+    #playChimeSound()
+    updatePhotoFull("2.png")
+    sleep(0.8)
+    
+    #playChimeSound()
+    updatePhotoFull("1.png")
+    sleep(0.8)
+    updatePhotoFull("clearpixel.png")
     
     flashLightOn()
     
@@ -385,19 +429,20 @@ def countdown():
     print("["+fileNameOrError+"]")
     
     if (fileNameOrError == ""):
-        print("ERROR NEEDING RESET OCCURRED. ONE MOMENT.")
+        print("COULD NOT GET PHOTO FROM CAMERA. ERROR NEEDING RESET OCCURRED. ONE MOMENT.")
         resetUSB()
         gphotoReset()
         deleteLocalImages()
-        print("An error occurred")
+        print("An error occurred A1")
         logging.error("An error occurred:%s", fileNameOrError)
-        lbl.configure(text="An error occurred. Please try again.")
-        update_status(albumCode,"Error on last photo attempt. Please try again.")
-        lbl.update()
+        #lbl.configure(text="An error occurred. Please try again.")
+        update_status(albumCode,"Error on last photo attempt. Could not get photo from camera. Please try again.")
+        #lbl.update()
         photoProcessingState = 2
         flashLightOff()
         hide_wait_indicator()
-        bSnapPhotoButtonShouldFlash = True 
+        bSnapPhotoButtonShouldFlash = True
+        #countdown()
         return "Error"
     
     if ("error" not in fileNameOrError) and ("Error" not in fileNameOrError) :
@@ -406,14 +451,14 @@ def countdown():
 
         print("sending file to server")
         print(fileNameOrError)
-        updatePhoto(fileNameOrError)
+        updatePhotoFull(fileNameOrError)
         
         # lbl.configure(text="See your photos at popsee.com, album code \"heather\"")
         #show_qr_code_prompt()
         
         logging.info("Uploading %s to popsee", fileNameOrError)
 
-        lbl.update()
+        #lbl.update()
         upload_response = send_data_to_server_async(fileNameOrError)
         time.sleep(3)
         hide_wait_indicator()
@@ -423,24 +468,24 @@ def countdown():
         flashLightOff()
         
     else:
-        print("An error occurred")
+        print("An error occurred Q1")
         logging.error("An error occurred:%s", fileNameOrError)
-        lbl.configure(text="An error occurred. Trying again.")
+        #lbl.configure(text="An error occurred. Trying again.")
         update_status(albumCode,"Error on last photo attempt. Trying again.")
-        lbl.update()
+        #lbl.update()
         photoProcessingState = 2
         flashLightOff()
         hide_wait_indicator()
-        bSnapPhotoButtonShouldFlash = True  
+        bSnapPhotoButtonShouldFlash = True
         return 
     
     update_status(albumCode,"Ready")
     
     is_kiosk_mode = True 
     
-    lbl.configure(text=" ") # ready
+    #lbl.configure(text=" ") # ready
     hide_wait_indicator()
-    lbl.update()
+    #lbl.update()
     photoProcessingState = 2
     
     
@@ -453,17 +498,6 @@ def countdown():
     #root.after(5000, show_qr_code_graphic)
     bSnapPhotoButtonShouldFlash = True
     
-def show_qr_code_graphic():
-    global is_counting_down
-    if (not is_counting_down):
-        updatePhoto("see-your-photos.png")
-        hide_qr_code_prompt()
-    
-def show_qr_code_prompt():
-    qr_code_prompt.grid(column=1, row=2, pady=(20,20), padx=(0,0))
-    
-def hide_qr_code_prompt():
-    qr_code_prompt.grid_remove()
 
 def clicked():
     #btn.grid_remove()
@@ -519,7 +553,8 @@ def handleKioskMode():
     global is_kiosk_mode 
     if (is_kiosk_mode):
         #if (current_kiosk_screen == 0):
-        updatePhoto("free-photo-booth-press-start.png")
+        #updatePhotoFull("free-photo-booth-press-start.png")
+        updatePhotoFull("photo-booth-home.jpg")
         #    current_kiosk_screen = 1
         #else:
         #    updatePhoto("see-your-photos.png")
@@ -531,7 +566,7 @@ def handleKioskMode():
 def showPhotoRound():
     global photo_round
     fileToShow = str(photo_round)+"-of-3.png"
-    updateBottomPhoto(fileToShow)
+    updatePhotoFull(fileToShow)
     
 
 def updatePhotoRound():
@@ -555,26 +590,26 @@ is_counting_down = False
 #flashTakePhotoButton(10)
 # set up TKinter window
 root = Tk()
-root.geometry('1820x950')
+root.geometry('1440x900')
 root.title("Photo Booth")
-root.configure(background='black', borderwidth=0, border=0, highlightthickness=0)
+root.configure(background='blue', borderwidth=0, border=0, highlightthickness=0)
 
 # remove titlebar
 # root.overrideredirect(1)
 
-lbl = Label(root, text="",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
-lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))
+#lbl = Label(root, text="",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
+#lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))
 update_status(albumCode,"")
 
-qr_code_prompt = Label(root, text="Scan the QR code to see the photos on your phone!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
+#qr_code_prompt = Label(root, text="Scan the QR code to see the photos on your phone!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
 
-root.grid_columnconfigure(0, weight=1)
-root.grid_columnconfigure(2, weight=1)
+#root.grid_columnconfigure(0, weight=1)
+#root.grid_columnconfigure(2, weight=1)
 
-canvas = Canvas(root, width = 900, height = 600, background='#000',highlightthickness=0, borderwidth=0, border=0) 
+canvas = Canvas(root, width = 1440, height = 900, background='#000',highlightthickness=0, borderwidth=0, border=0) 
 
-root.grid_columnconfigure(0, weight=1)
-root.grid_columnconfigure(2, weight=1)
+#root.grid_columnconfigure(0, weight=1)
+#root.grid_columnconfigure(2, weight=1)
 
 photoProcessingState = 2 # ready for input
 update_status(albumCode,"Ready")
@@ -582,7 +617,7 @@ update_status(albumCode,"Ready")
 # detect 3..2..1 button
 GPIO.add_event_detect(BUTTON_BCM_PIN, GPIO.BOTH, callback=physical_button_pressed, bouncetime=500)
 
-# wait indicator on SnapPhoto button
+# wait indicator on lit button, to flash on and off
 root.after(1000, handlePhotoButtonFlash)
 
 # wait indicator
@@ -596,7 +631,7 @@ root.after(0, handleKioskMode)
 root.bind("<Escape>", exit)
 root.bind('<Key>', keypressed)
 
-bottom_canvas = Canvas(root, width = 900, height = 200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
+bottom_canvas = Canvas(root, width = 1440, height = 200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
 
 updatePhotoRound()
 
