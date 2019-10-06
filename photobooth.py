@@ -184,6 +184,7 @@ def updatePhotoFull(filename):
     
     global photoProcessingState
     photoProcessingState = 1
+    global image
     
     global imgFull
     n = 1
@@ -600,7 +601,9 @@ root.title("Photo Booth")
 root.configure(background='blue', borderwidth=0, border=0, highlightthickness=0)
 
 # remove titlebar
-root.overrideredirect(1)
+# root.overrideredirect(1)
+root.attributes("-fullscreen", True)
+
 
 #lbl = Label(root, text="",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
 #lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))
@@ -633,8 +636,8 @@ waitindicator = Label(root, highlightthickness=0,borderwidth=0, highlightbackgro
 
 root.after(0, handleKioskMode)    
 
-root.bind("<Escape>", exit)
-root.bind('<Key>', keypressed)
+#root.bind("<Escape>", exit)
+root.bind('<Any-KeyPress>', exit)
 
 bottom_canvas = Canvas(root, width = 1440, height = 200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
 
