@@ -257,12 +257,12 @@ def fullReset():
 
 def playChimeSound():
     # requires mpg321 install first
-    subprocess.Popen(["mpg321","chime.mp3"])
+    subprocess.Popen(["mpg321","-q", "chime.mp3"])
     return
 
 def playGetReadySound():
     # requires mpg321 install first
-    subprocess.Popen(["mpg321","get-ready.mp3"])
+    subprocess.Popen(["mpg321","-q","get-ready.mp3"])
     return
 
 
@@ -286,6 +286,7 @@ def reset_button_pressed(event):
     p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
 
 def physical_button_pressed(event):
+    print("physical_button_pressed")
     if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
         return 
     
@@ -296,6 +297,7 @@ def physical_button_pressed(event):
     if (not detectCamera()):
         logging.error("Cannot detect camera. Is it powered on?")
         update_status(albumCode,"Camera not detected. Is it powered on?")
+        updatePhotoFull("error-no-camera.png")
         #lbl.configure(text="Cannot detect camera. Is it powered on?")
         #lbl.update()
         return 
@@ -428,7 +430,7 @@ def countdown():
     print("fileNameOrError is:")
     print("["+fileNameOrError+"]")
     
-    if (fileNameOrError == ""):
+    if (fileNameOrError == "") or (fileNameOrError == "Try Again"):
         print("COULD NOT GET PHOTO FROM CAMERA. ERROR NEEDING RESET OCCURRED. ONE MOMENT.")
         resetUSB()
         gphotoReset()
@@ -469,14 +471,17 @@ def countdown():
         
     else:
         print("An error occurred Q1")
+        updatePhotoFull("sorry-error.png")
         logging.error("An error occurred:%s", fileNameOrError)
         #lbl.configure(text="An error occurred. Trying again.")
         update_status(albumCode,"Error on last photo attempt. Trying again.")
         #lbl.update()
+        
         photoProcessingState = 2
         flashLightOff()
         hide_wait_indicator()
         bSnapPhotoButtonShouldFlash = True
+        countdown()
         return 
     
     update_status(albumCode,"Ready")
@@ -595,7 +600,7 @@ root.title("Photo Booth")
 root.configure(background='blue', borderwidth=0, border=0, highlightthickness=0)
 
 # remove titlebar
-# root.overrideredirect(1)
+root.overrideredirect(1)
 
 #lbl = Label(root, text="",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
 #lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))

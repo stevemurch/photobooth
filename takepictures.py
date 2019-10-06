@@ -87,7 +87,10 @@ def takePicture():
     if (errorNeedingResetOccurred):
         print("ERROR NEEDING RESET OCCURRED. ONE MOMENT.")
         resetUSB()
-        gphotoReset()
+        try: 
+            gphotoReset()
+        except:
+            print("gphotoReset caused an exception.")
         deleteLocalImages()
         return "Error"
     
