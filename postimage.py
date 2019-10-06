@@ -25,11 +25,10 @@ def send_data_to_server(image_path):
         print(json_response)
         return response.text 
     except:
-        
-        update_status(albumCode, "An exception occurred in upload!")
+        #update_status(albumCode, "An exception occurred in upload!")
         print("An exception occurred in upload")
-        parsed = json.loads(response.content)
-        print (parsed)
+        #parsed = json.loads(response.content)
+        #print (parsed)
         return "Error"
 
 def update_status(code, message):
