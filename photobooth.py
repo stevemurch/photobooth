@@ -1,5 +1,10 @@
 # PhotoBooth
 
+# WARNING: This code (by design) will delete all photos on your 
+# camera's SD card when it boots up. This is to get the 
+# camera ready to take photos. 
+
+
 # PINS ARE IN BROADCOM FORMAT, NOT PHYSICAL PIN FORMAT
 # Wiring: Button and LED, USB cable
 
@@ -38,6 +43,8 @@ from postimage import send_data_to_server, send_data_to_server_async, update_sta
 from secret import *
 
 import logging
+
+
 
 os.chdir("/home/pi/Desktop/photobooth")
 logging.basicConfig(level=logging.DEBUG, filename='photobooth.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
@@ -139,8 +146,6 @@ def deleteLocalImages():
     print("Files deleted.")
     logging.info("Files deleted.")
     
-
-
 #def showButton():
 #    btn.lift()
 

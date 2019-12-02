@@ -6,6 +6,7 @@ import aiohttp
 import json 
 from threading import Thread
 
+
 def send_data_to_server_async(image_path):
     t = Thread(target=send_data_to_server, args=(image_path,))
     t.start()
