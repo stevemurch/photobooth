@@ -46,18 +46,18 @@ from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import os, glob
 from postimage import send_data_to_server, send_data_to_server_async, update_status
+import logging
 
-# This file simply holds the value for these variables, which relate to POSTing an image 
-# to a remote server: 
+# Back-end support. 
+# The file "secret.py" is not in the GitHub repo, and simply holds the value for these variables, 
+# which relate to POSTing an image to a remote server: 
 # 
-# albumCode (the popsee album to post to)
-# postImageUrl 
-
-  
+# albumCode:    the "shortcode" for the popsee album to post to
+# postImageUrl: the URL to POST images to 
+# statusUrl:    the URL to POST text status updates to (the server then rebroadcasts them)
 from secret import *
 
 
-import logging
 
 
 
