@@ -1,4 +1,15 @@
 # postimage.py
+
+# My version of the Photo Booth posts to a back-end Internet service I created called popsee.com, 
+# which lets users review the photos taken, get a download link via SMS, and allows admins 
+# to create a big-screen slideshow of the photos "favorited" by the admin. 
+# 
+# At this writing, I'm not making popsee.com available for public use, but if you've got a special use-case, 
+# jot me a note. Jot me a note at @stevemur on Twitter. 
+
+# Change the functions here to post to YOUR own endpoint(s). You could upload to Google Photos or 
+# tweet out the photos via Twitter for instance. 
+
 import requests
 import os
 from secret import *

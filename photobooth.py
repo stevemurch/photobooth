@@ -1,20 +1,26 @@
 # PhotoBooth
 
+# https://www.stevemurch.com/build-a-photo-booth-for-your-next-party/2019/12
+
 # WARNING: This code (by design) will delete all photos on your 
 # camera's SD card when it boots up. This is to get the 
-# camera ready to take photos. 
+# camera ready to take photos and to generally save time in file transfer,
+# and avoid file collisions (e.g., prompts to overwrite the filename)...  
+# Also saves the camera and RPi from iterating through a bunch of photos. 
 
+# GPIO PINS ARE IN BROADCOM FORMAT, NOT PHYSICAL PIN FORMAT
 
-# PINS ARE IN BROADCOM FORMAT, NOT PHYSICAL PIN FORMAT
-# Wiring: Button and LED, USB cable
+# Raspberry Pi 3B+ used. Connected to Wifi. 
 
-# Camera: Set Connection mode to USB Auto
+# Wiring: You'll need a large arade button w/LED, USB cable, and a relay to a 110V connection. 
+
+# Camera: Set Connection mode to USB Auto. Put it in PTP mode if it has one. Disable any power saving/screensaver. 
+# Install gphoto2, turn on your camera, connect the USB cable, and try running the 
+# following on the RPi command line to test the connection: 
+
 # gphoto2 --capture-image-and-download
-# CAMERA CANNOT BE IN "MENU" Mode.
 
-# TO DO -- need to delete all images from camera at startup
-# OTHERWISE gphoto2 --capture-image-and-download might prompt for overwrite
-# which would stall this program
+# In my own tests with a Fuji X-T2, note that the camera CANNOT be in "MENU" mode
 
 # LED on BOARD PIN 13
 
@@ -40,7 +46,16 @@ from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import os, glob
 from postimage import send_data_to_server, send_data_to_server_async, update_status
+
+# This file simply holds the value for these variables, which relate to POSTing an image 
+# to a remote server: 
+# 
+# albumCode (the popsee album to post to)
+# postImageUrl 
+
+  
 from secret import *
+
 
 import logging
 
@@ -50,24 +65,22 @@ os.chdir("/home/pi/Desktop/photobooth")
 logging.basicConfig(level=logging.DEBUG, filename='photobooth.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 logging.info("Initializing")
 
-GPIO.setmode(GPIO.BCM) # broadcom
-
-LED_BCM_PIN = 27 # physical pin number 13
+# Various globals
 sleepTime = 0.1
-
 photo_round = 0
-
-BUTTON_BCM_PIN = 22 # physical pin 15
-
-RELAY_CONTROL_PIN = 18 # physical pin 12
-
-SNAP_PHOTO_LED_BCM_PIN = 4 # physical pin 7
-
 bPhotoButtonLit = False
 bSnapPhotoButtonShouldFlash = True
-
 is_kiosk_mode = True
 current_kiosk_screen = 0 
+
+# PIN I/O for Raspberry Pi 
+GPIO.setmode(GPIO.BCM) # broadcom
+
+# PINS 
+LED_BCM_PIN = 27 # physical pin number 13.
+BUTTON_BCM_PIN = 22 # physical pin 15 -- This is the blue GO button
+SNAP_PHOTO_LED_BCM_PIN = 4 # physical pin 7 -- This is the LIGHT inside the blue GO button
+RELAY_CONTROL_PIN = 18 # physical pin 12 -- Turn on or off the relay (photographic lighting)
 
 # pin numbering -- broadcom needed
 # https://gpiozero.readthedocs.io/en/stable/recipes.html#pin-numbering
@@ -84,8 +97,6 @@ GPIO.setup(RELAY_CONTROL_PIN, GPIO.OUT)
 # start button
 # set the default to high, pull up on default
 GPIO.setup(BUTTON_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-# reset button
-# GPIO.setup(BUTTON_RESET_BCM_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 photoProcessingState = 0 # 0=not set, 1=initializing, 2=ready for button, 3=processing
 
@@ -95,8 +106,8 @@ def turnOffPhotoLighting():
 def turnOnPhotoLighting():
     GPIO.output(RELAY_CONTROL_PIN, GPIO.HIGH)
 
-
-# called by loop. if button should be flashing, toggle it. if it shouldn't turn it off.
+# called by loop. 
+# if button should be flashing, toggle it. if it shouldn't turn it off.
 def handlePhotoButtonFlash():
     global bPhotoButtonLit
     global bSnapPhotoButtonShouldFlash
@@ -133,6 +144,9 @@ def extractFileNameFromGphotoOutput(inputString):
         logging.exception("Could not extractFileNameFromGphotoOutput('%s')", inputString)
         return ""
 
+# Delete all the local images on the SD Card
+# This is done to make photo handling simpler and faster (don't have to iterate through all files)
+
 def deleteLocalImages():
     try:
         for f in glob.glob("DSC*.jpg"):
@@ -146,12 +160,6 @@ def deleteLocalImages():
     print("Files deleted.")
     logging.info("Files deleted.")
     
-#def showButton():
-#    btn.lift()
-
-#def hideButton():
-#    btn.lower()
-
 def updatePhoto(filename):
     logging.info("update photo to %s", filename)
     
@@ -171,14 +179,8 @@ def updatePhoto(filename):
     else:
         newImageSizeHeight = int(imageSizeHeight/n) 
 
-    #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
     image = image.resize(1440, 960, Image.ANTIALIAS)
     img = ImageTk.PhotoImage(image)
-    
-    #print("updating image...")
-    #global img
-    #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
-    #resized = img.zoom(1000,500)
     
     canvas.create_image(0,0, anchor=NW, image=img) 
     canvas.grid(column=1,row=1,padx=(0,0), pady=(0,0))
@@ -204,55 +206,18 @@ def updatePhotoFull(filename):
     else:
         newImageSizeHeight = int(imageSizeHeight/n) 
 
-    #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
     image = image.resize((1440, 960), Image.ANTIALIAS)
     imgFull = ImageTk.PhotoImage(image)
-    
-    #print("updating image...")
-    #global img
-    #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
-    #resized = img.zoom(1000,500)
     
     canvas.create_image(0,0, anchor=NW, image=imgFull) 
     canvas.grid(column=0,row=0,padx=(0,0), pady=(0,0))
     canvas.update()
     
-# def updateBottomPhoto(filename):
-    
-#     global img2
-#     n = 1
-#     same = True 
-    
-#     path = filename
-#     image = Image.open(path)
-#     [imageSizeWidth, imageSizeHeight] = image.size
-#     newImageSizeWidth = int(imageSizeWidth*n)
-#     if same:
-#         newImageSizeHeight = int(imageSizeHeight*n)
-#     else:
-#         newImageSizeHeight = int(imageSizeHeight/n) 
-
-#     #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
-#     image = image.resize((400, 100), Image.ANTIALIAS)
-#     img2 = ImageTk.PhotoImage(image)
-    
-#     #print("updating image...")
-#     #global img
-#     #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
-#     #resized = img.zoom(1000,500)
-    
-#     bottom_canvas.create_image(0,0, anchor=NW, image=img2) 
-#     bottom_canvas.grid(column=1,row=3, padx=(510,0), pady=(0,0))
-#     bottom_canvas.update()
 
 def flashLightOn():
-    #GPIO.setwarnings(False)
-    print("LED on")
     GPIO.output(LED_BCM_PIN, GPIO.HIGH)
 
-
 def flashLightOff():
-    print("LED off")
     GPIO.output(LED_BCM_PIN, GPIO.LOW)
     
 def fullReset():
@@ -260,6 +225,11 @@ def fullReset():
     resetUSB()
     gphotoReset()
     setupPhotoShoot()
+
+
+# Uses mpg321 to play an MP3 file. 
+# Install mpg321 onto your RPi via:
+# sudo apt-get install mpg321 
 
 def playChimeSound():
     # requires mpg321 install first
@@ -272,18 +242,14 @@ def playGetReadySound():
     return
 
 
-def playCameraSound():
-    # requires mpg321 install first
-    #subprocess.Popen(["mpg321","camera.mp3"])
-    return
+# Called when reset button is pressed. 
+# An optional hardware reset button can be wired into the board. 
+# In my first build, I decided not to mount this reset button into the enclosure; 
+# Instead I provided a keyboard and mouse for admin input. 
 
 def reset_button_pressed(event):
     logging.warning("reset_button_pressed")
-    #if (GPIO.input(BUTTON_RESET_BCM_PIN)==1):  #ignore second one
-    #    return
-    
     logging.warning("Initiating a reset of the board.")
-    
     print("RESET!")
     update_status(albumCode, "Reset button pressed. One moment; rebooting photo booth...")
     print("resetting usb")
@@ -292,24 +258,21 @@ def reset_button_pressed(event):
     p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
 
 def physical_button_pressed(event):
+    global photoProcessingState 
+    global bSnapPhotoButtonShouldFlash
+
     print("physical_button_pressed")
-    if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one
+    if (GPIO.input(BUTTON_BCM_PIN)==1):  #ignore second one; debounce the button
         return 
     
     logging.info("physical_button_pressed called")
-    global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False 
     
     if (not detectCamera()):
         logging.error("Cannot detect camera. Is it powered on?")
         update_status(albumCode,"Camera not detected. Is it powered on?")
         updatePhotoFull("error-no-camera.png")
-        #lbl.configure(text="Cannot detect camera. Is it powered on?")
-        #lbl.update()
         return 
-    
-    #print(time.time())
-    global photoProcessingState 
     
     if (photoProcessingState == 2):
         photoProcessingState = 1
@@ -317,22 +280,13 @@ def physical_button_pressed(event):
     else:
         photoProcessingState = 1
         logging.error("photoProcessingState is 1; not yet ready")
-        #print("Not yet ready")
         countdown() 
-
-def update_label():
-    #lbl.configure(text="Great! One moment...")
-    #lbl.update()
-    xxx=1
 
 def show_upload_processing_graphic():
     updatePhotoFull("see-your-photos.png")
     
 def show_got_it():
     updatePhotoFull("got-it.png")
-
-#def clearBottomPhoto():
-#    updateBottomPhoto("clearpixel.png")
 
 def update_and_show_photo_round():
     updatePhotoRound()
@@ -347,7 +301,6 @@ def countdown():
     global is_counting_down
     is_counting_down = True 
     logging.info("COUNTDOWN called")
-    #hide_qr_code_prompt()
     
     updatePhotoFull("clearpixel.png")
     
@@ -358,10 +311,7 @@ def countdown():
     
     global photoProcessingState
     photoProcessingState = 0
-    #hideButton()
-    #lbl.configure(text=" READY?  ")
-    #lbl.update()
-    #updatePhotoFull("get-ready.png")
+
     if (photo_round==1):
         playGetReadySound()
     
@@ -376,10 +326,6 @@ def countdown():
         sleep(3)
     else:
         sleep(0.2)
-        
-    #lbl.configure(text="  ")
-    #lbl.update()
-    
     
     if (photo_round==1):
     
@@ -387,7 +333,6 @@ def countdown():
         playChimeSound()
         sleep(0.5)
 
-    
         updatePhotoFull("4.png")
         playChimeSound()
         sleep(0.5)
@@ -404,31 +349,15 @@ def countdown():
     updatePhotoFull("1.png")
     sleep(0.3)
     
-    
-    #flashLightOn()
-    
     # update the web album on popsee 
     update_status(albumCode,"Getting photo from camera...")
     logging.info("Getting photo from camera")
     
     is_counting_down = False 
-    #global root
-    #root.after(1100, update_label)
-    
-    #root.after(1100, update_and_show_photo_round)
-    
     root.after(50, show_got_it)
     
-
-    #if (photo_round == 3): 
-    #    root.after(1500, clearBottomPhoto)
-    
-    #root.after(3500, show_upload_processing_graphic)
-    
     root.after(2000, turnOffPhotoLighting)
-    
     root.after(1600, show_wait_indicator)
-    
     fileNameOrError = snapPhotoReliably()
     
     logging.info("snapPhotoReliably result is:%s", fileNameOrError)
@@ -443,14 +372,11 @@ def countdown():
         deleteLocalImages()
         print("An error occurred A1")
         logging.error("An error occurred:%s", fileNameOrError)
-        #lbl.configure(text="An error occurred. Please try again.")
         update_status(albumCode,"Error on last photo attempt. Could not get photo from camera. Please try again.")
-        #lbl.update()
         photoProcessingState = 2
         flashLightOff()
         hide_wait_indicator()
         bSnapPhotoButtonShouldFlash = True
-        #countdown()
         return "Error"
     
     if ("error" not in fileNameOrError) and ("Error" not in fileNameOrError) :
@@ -460,13 +386,8 @@ def countdown():
         print("sending file to server")
         print(fileNameOrError)
         updatePhotoFull(fileNameOrError)
-        
-        # lbl.configure(text="See your photos at popsee.com, album code \"heather\"")
-        #show_qr_code_prompt()
-        
         logging.info("Uploading %s to popsee", fileNameOrError)
 
-        #lbl.update()
         upload_response = send_data_to_server_async(fileNameOrError)
         time.sleep(3)
         hide_wait_indicator()
@@ -479,9 +400,7 @@ def countdown():
         print("An error occurred Q1")
         updatePhotoFull("sorry-error.png")
         logging.error("An error occurred:%s", fileNameOrError)
-        #lbl.configure(text="An error occurred. Trying again.")
         update_status(albumCode,"Error on last photo attempt. Trying again.")
-        #lbl.update()
         
         photoProcessingState = 2
         flashLightOff()
@@ -493,41 +412,28 @@ def countdown():
     update_status(albumCode,"Ready")
     
     is_kiosk_mode = True 
-    
-    #lbl.configure(text=" ") # ready
     hide_wait_indicator()
-    #lbl.update()
     photoProcessingState = 2
-    
-    
     
     if (photo_round > 1):
         countdown()
         return
     
-    
-    #root.after(5000, show_qr_code_graphic)
     bSnapPhotoButtonShouldFlash = True
-    
 
 def clicked():
-    #btn.grid_remove()
     hide_qr_code_prompt()
-    
     countdown()
-    #add_button()
 
 def update_wait_indicator(ind):
     global bShowWaitIndicator
     if (bShowWaitIndicator):
-        if (ind==maxFrames):
+        if (ind == maxFrames):
             ind = 0
             root.after(0,update_wait_indicator, ind)
             return
-        #print(ind)
         frame = frames[ind]
         ind += 1
-        #print(ind)
         waitindicator.configure(image=frame, borderwidth=0, highlightbackground='black', highlightthickness=0)
         root.after(150, update_wait_indicator, ind)
     else:
@@ -555,21 +461,12 @@ def keypressed(event):
         print("EXITING")
         #GPIO.cleanup()
         root.destroy()
-    
-def exit(e):
-    root.destroy()
 
 def handleKioskMode():
     global current_kiosk_screen 
     global is_kiosk_mode 
     if (is_kiosk_mode):
-        #if (current_kiosk_screen == 0):
-        #updatePhotoFull("free-photo-booth-press-start.png")
         updatePhotoFull("photo-booth-home.jpg")
-        #    current_kiosk_screen = 1
-        #else:
-        #    updatePhoto("see-your-photos.png")
-        #    current_kiosk_screen = 0
     else:
         x=1
     root.after(10000, handleKioskMode)
@@ -587,9 +484,11 @@ def updatePhotoRound():
     
     photo_round = photo_round + 1
     
-    
-    
-    
+def exit(e):
+    root.destroy()
+    print("Goodbye...")
+    GPIO.cleanup()
+
 
 # delete files
 # deleteLocalImages()
@@ -598,8 +497,7 @@ setupPhotoShoot()
 
 is_counting_down = False 
 
-#flashTakePhotoButton(10)
-# set up TKinter window
+# set up main TKinter root window
 root = Tk()
 root.geometry('1440x960')
 root.title("Photo Booth")
@@ -609,20 +507,9 @@ root.configure(background='blue', borderwidth=0, border=0, highlightthickness=0)
 # root.overrideredirect(1)
 root.attributes("-fullscreen", True)
 
-
-#lbl = Label(root, text="",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
-#lbl.grid(column=1, row=0, padx=(0, 0), pady=(50, 50))
 update_status(albumCode,"")
 
-#qr_code_prompt = Label(root, text="Scan the QR code to see the photos on your phone!",highlightthickness=0, font=("Arial Bold", 20), foreground='white', background='black')
-
-#root.grid_columnconfigure(0, weight=1)
-#root.grid_columnconfigure(2, weight=1)
-
 canvas = Canvas(root, width = 1600, height = 1200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
-
-#root.grid_columnconfigure(0, weight=1)
-#root.grid_columnconfigure(2, weight=1)
 
 photoProcessingState = 2 # ready for input
 update_status(albumCode,"Ready")
@@ -641,14 +528,11 @@ waitindicator = Label(root, highlightthickness=0,borderwidth=0, highlightbackgro
 
 root.after(0, handleKioskMode)    
 
-#root.bind("<Escape>", exit)
+# Any key press will exit the photo booth. 
 root.bind('<Any-KeyPress>', exit)
-
-#bottom_canvas = Canvas(root, width = 1440, height = 200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
 
 updatePhotoRound()
 
+# Run the main loop
 root.mainloop()
 
-print("Goodbye...")
-GPIO.cleanup()
