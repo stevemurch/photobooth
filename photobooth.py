@@ -172,7 +172,7 @@ def updatePhoto(filename):
         newImageSizeHeight = int(imageSizeHeight/n) 
 
     #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
-    image = image.resize((900, 600), Image.ANTIALIAS)
+    image = image.resize(1440, 960, Image.ANTIALIAS)
     img = ImageTk.PhotoImage(image)
     
     #print("updating image...")
@@ -205,7 +205,7 @@ def updatePhotoFull(filename):
         newImageSizeHeight = int(imageSizeHeight/n) 
 
     #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
-    image = image.resize((1440, 1080), Image.ANTIALIAS)
+    image = image.resize((1440, 960), Image.ANTIALIAS)
     imgFull = ImageTk.PhotoImage(image)
     
     #print("updating image...")
@@ -373,7 +373,7 @@ def countdown():
     # display "READY?"
     
     if (photo_round==1):
-        sleep(5)
+        sleep(3)
     else:
         sleep(2)
         
@@ -381,31 +381,31 @@ def countdown():
     #lbl.update()
     
     
-    #if (photo_round==1):
+    if (photo_round==1):
     
-    updatePhotoFull("5.png")
-    playChimeSound()
-    sleep(0.8)
+        updatePhotoFull("5.png")
+        playChimeSound()
+        sleep(0.5)
 
     
-    updatePhotoFull("4.png")
-    playChimeSound()
-    sleep(0.8)
+        updatePhotoFull("4.png")
+        playChimeSound()
+        sleep(0.5)
     
     updatePhotoFull("3.png")
     playChimeSound()
-    sleep(0.8)
+    sleep(0.5)
     
     #playChimeSound()
     updatePhotoFull("2.png")
-    sleep(0.8)
+    sleep(0.5)
     
     #playChimeSound()
     updatePhotoFull("1.png")
-    sleep(0.8)
+    sleep(0.5)
     updatePhotoFull("clearpixel.png")
     
-    flashLightOn()
+    #flashLightOn()
     
     # update the web album on popsee 
     update_status(albumCode,"Getting photo from camera...")
@@ -417,11 +417,11 @@ def countdown():
     
     #root.after(1100, update_and_show_photo_round)
     
-    root.after(1500, show_got_it)
+    root.after(100, show_got_it)
     
 
-    if (photo_round == 3): 
-        root.after(1500, clearBottomPhoto)
+    #if (photo_round == 3): 
+    #    root.after(1500, clearBottomPhoto)
     
     #root.after(3500, show_upload_processing_graphic)
     
@@ -601,7 +601,7 @@ is_counting_down = False
 #flashTakePhotoButton(10)
 # set up TKinter window
 root = Tk()
-root.geometry('1440x1080')
+root.geometry('1440x960')
 root.title("Photo Booth")
 root.configure(background='blue', borderwidth=0, border=0, highlightthickness=0)
 
@@ -619,7 +619,7 @@ update_status(albumCode,"")
 #root.grid_columnconfigure(0, weight=1)
 #root.grid_columnconfigure(2, weight=1)
 
-canvas = Canvas(root, width = 1440, height = 1080, background='#000',highlightthickness=0, borderwidth=0, border=0) 
+canvas = Canvas(root, width = 1600, height = 1200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
 
 #root.grid_columnconfigure(0, weight=1)
 #root.grid_columnconfigure(2, weight=1)
