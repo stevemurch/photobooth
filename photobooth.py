@@ -205,7 +205,7 @@ def updatePhotoFull(filename):
         newImageSizeHeight = int(imageSizeHeight/n) 
 
     #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
-    image = image.resize((1440, 900), Image.ANTIALIAS)
+    image = image.resize((1440, 1080), Image.ANTIALIAS)
     imgFull = ImageTk.PhotoImage(image)
     
     #print("updating image...")
@@ -217,33 +217,33 @@ def updatePhotoFull(filename):
     canvas.grid(column=0,row=0,padx=(0,0), pady=(0,0))
     canvas.update()
     
-def updateBottomPhoto(filename):
+# def updateBottomPhoto(filename):
     
-    global img2
-    n = 1
-    same = True 
+#     global img2
+#     n = 1
+#     same = True 
     
-    path = filename
-    image = Image.open(path)
-    [imageSizeWidth, imageSizeHeight] = image.size
-    newImageSizeWidth = int(imageSizeWidth*n)
-    if same:
-        newImageSizeHeight = int(imageSizeHeight*n)
-    else:
-        newImageSizeHeight = int(imageSizeHeight/n) 
+#     path = filename
+#     image = Image.open(path)
+#     [imageSizeWidth, imageSizeHeight] = image.size
+#     newImageSizeWidth = int(imageSizeWidth*n)
+#     if same:
+#         newImageSizeHeight = int(imageSizeHeight*n)
+#     else:
+#         newImageSizeHeight = int(imageSizeHeight/n) 
 
-    #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
-    image = image.resize((400, 100), Image.ANTIALIAS)
-    img2 = ImageTk.PhotoImage(image)
+#     #image = image.resize((newImageSizeWidth, newImageSizeHeight), Image.ANTIALIAS)
+#     image = image.resize((400, 100), Image.ANTIALIAS)
+#     img2 = ImageTk.PhotoImage(image)
     
-    #print("updating image...")
-    #global img
-    #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
-    #resized = img.zoom(1000,500)
+#     #print("updating image...")
+#     #global img
+#     #img = ImageTk.PhotoImage(Image.open("image2.jpg"))
+#     #resized = img.zoom(1000,500)
     
-    bottom_canvas.create_image(0,0, anchor=NW, image=img2) 
-    bottom_canvas.grid(column=1,row=3, padx=(510,0), pady=(0,0))
-    bottom_canvas.update()
+#     bottom_canvas.create_image(0,0, anchor=NW, image=img2) 
+#     bottom_canvas.grid(column=1,row=3, padx=(510,0), pady=(0,0))
+#     bottom_canvas.update()
 
 def flashLightOn():
     #GPIO.setwarnings(False)
@@ -331,8 +331,8 @@ def show_upload_processing_graphic():
 def show_got_it():
     updatePhotoFull("got-it.png")
 
-def clearBottomPhoto():
-    updateBottomPhoto("clearpixel.png")
+#def clearBottomPhoto():
+#    updateBottomPhoto("clearpixel.png")
 
 def update_and_show_photo_round():
     updatePhotoRound()
@@ -644,7 +644,7 @@ root.after(0, handleKioskMode)
 #root.bind("<Escape>", exit)
 root.bind('<Any-KeyPress>', exit)
 
-bottom_canvas = Canvas(root, width = 1440, height = 200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
+#bottom_canvas = Canvas(root, width = 1440, height = 200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
 
 updatePhotoRound()
 
