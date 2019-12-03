@@ -375,7 +375,7 @@ def countdown():
     if (photo_round==1):
         sleep(3)
     else:
-        sleep(2)
+        sleep(0.2)
         
     #lbl.configure(text="  ")
     #lbl.update()
@@ -402,8 +402,8 @@ def countdown():
     
     #playChimeSound()
     updatePhotoFull("1.png")
-    sleep(0.5)
-    updatePhotoFull("clearpixel.png")
+    sleep(0.3)
+    
     
     #flashLightOn()
     
@@ -417,7 +417,7 @@ def countdown():
     
     #root.after(1100, update_and_show_photo_round)
     
-    root.after(100, show_got_it)
+    root.after(50, show_got_it)
     
 
     #if (photo_round == 3): 
