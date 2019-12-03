@@ -601,7 +601,7 @@ is_counting_down = False
 #flashTakePhotoButton(10)
 # set up TKinter window
 root = Tk()
-root.geometry('1440x900')
+root.geometry('1440x1080')
 root.title("Photo Booth")
 root.configure(background='blue', borderwidth=0, border=0, highlightthickness=0)
 
@@ -619,7 +619,7 @@ update_status(albumCode,"")
 #root.grid_columnconfigure(0, weight=1)
 #root.grid_columnconfigure(2, weight=1)
 
-canvas = Canvas(root, width = 1440, height = 900, background='#000',highlightthickness=0, borderwidth=0, border=0) 
+canvas = Canvas(root, width = 1440, height = 1080, background='#000',highlightthickness=0, borderwidth=0, border=0) 
 
 #root.grid_columnconfigure(0, weight=1)
 #root.grid_columnconfigure(2, weight=1)
