@@ -1,4 +1,4 @@
-# postimage.py
+# remoterequests.py
 
 # My version of the Photo Booth posts to a back-end Internet service I created called popsee.com, 
 # which lets users review the photos taken, get a download link via SMS, and allows admins 
@@ -15,6 +15,7 @@ import os
 import aiohttp
 import json 
 from threading import Thread
+import urllib.request # requires Python 3.x
 
 # secret.py includes back-end support variables
 # The file "secret.py" is not in the GitHub repo, and simply holds the value for these variables, 
@@ -44,6 +45,31 @@ def send_data_to_server(image_path):
         #parsed = json.loads(response.content)
         #print (parsed)
         return "Error"
+
+def get_current_config(path_to_save_homescreen):
+    print("Getting current configuration from popsee server...")
+    global albumCode 
+    try:
+        response = requests.get(configUrl, verify=False)
+        print(response.status_code)
+        parsed = json.loads(response.content)
+        print("homeScreenJPGUrl: "+ parsed["homeScreenJPGUrl"])
+        print("albumCode: "+parsed["albumCode"])
+
+        download_image(parsed["homeScreenJPGUrl"], "homescreen-image.jpg")
+        return ""
+    except:
+        print("An exception occurred in getting configuration data")
+        return "Error"
+
+def download_image(url, image_filename):
+    #try:
+        urllib.request.urlretrieve(url, image_filename)
+        return image_filename
+    #except:
+
+     #   return ""
+
 
 # Post status information to the server. (Popsee currently uses SignalR to broadcast these messages to current viewers of the album.)
 def update_status(code, message):

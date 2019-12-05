@@ -45,7 +45,7 @@ from subprocess import check_output, Popen, PIPE
 from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import os, glob
-from postimage import send_data_to_server, send_data_to_server_async, update_status
+from remoterequests import send_data_to_server, send_data_to_server_async, update_status, get_current_config
 import logging
 
 # Back-end support. 
@@ -65,6 +65,10 @@ try:
     os.chdir("/home/pi/Desktop/photobooth")
 except:
     print("Please run this from /home/pi/Desktop/photobooth")
+
+# get the home screen image
+get_current_config("")
+
 
 logging.basicConfig(level=logging.DEBUG, filename='photobooth.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 logging.info("Initializing")
@@ -490,13 +494,18 @@ def hide_wait_indicator():
     bShowWaitIndicator = False
     waitindicator.grid_remove()
 
+def showHomeScreenImage():
+    updatePhotoFull("homescreen-image.jpg")
+
+    #updatePhotoFull("assets/images/photo-booth-home.jpg")
+
 
 def handleKioskMode():
     global current_kiosk_screen 
     global is_kiosk_mode 
     if (is_kiosk_mode):
         #updatePhotoFull("sample-image.jpg")
-        updatePhotoFull("assets/images/photo-booth-home.jpg")
+        showHomeScreenImage()
     else:
         x=1
     root.after(10000, handleKioskMode)

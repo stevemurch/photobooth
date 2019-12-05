@@ -5,9 +5,8 @@ from subprocess import check_output
 from PIL import Image, ImageTk
 import RPi.GPIO as GPIO
 import os, glob
-from postimage import send_data_to_server
 from subprocess import Popen, PIPE
-from postimage import update_status
+from remoterequests import update_status, send_data_to_server
 from secret import *
 import sys 
 
