@@ -46,6 +46,14 @@ def send_data_to_server(image_path):
         #print (parsed)
         return "Error"
 
+# On startup, the photo booth calls out to the server to get 
+# configuration information, primarily the "albumCode" to use for posting images 
+# and status information, as well as the homescreen JPG. 
+# The homescreen JPG is downloaded at startup, 
+# and stored in the program's home directory as "homescreen-image.jpg"
+# This allows for the photo booth to change homescreens from party to party
+# by tweaking settings at the popsee API. 
+
 def get_current_config(path_to_save_homescreen):
     print("Getting current configuration from popsee server...")
     global albumCode 
