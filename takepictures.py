@@ -9,6 +9,7 @@ from postimage import send_data_to_server
 from subprocess import Popen, PIPE
 from postimage import update_status
 from secret import *
+import sys 
 
 # Occasionally if autofocus does not work, Fuji X-T2 will report back that autofocus is a problem
 # and all further attempts hang. Only solution I've found is to reset the full USB hub, not just
@@ -17,21 +18,36 @@ from secret import *
 # This seems to be a software solution (though hacky) to get over the showstopper bugs when
 # PTP errors or autofocus errors hang the process. 
 
+IS_DESKTOP_DEVELOPMENT = False 
+
+if (sys.platform == "win32"):
+    IS_DESKTOP_DEVELOPMENT = True 
+    
+
 def resetUSB():
     update_status(albumCode,"One moment, resetting USB...")
     print("resetting usb")
     sudoPassword="raspberry"
     command = 'usbreset 001/002'.split()
-    p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
-    sudo_prompt = p.communicate(sudoPassword + '\n')[1]
-    sleep(3)
+
+    try:
+        p = Popen(['sudo','-S'] + command, stdin=PIPE, stderr=PIPE, universal_newlines = True)
+        sudo_prompt = p.communicate(sudoPassword + '\n')[1]
+        sleep(3)
+    except:
+        print("exception on resetting usb")
+
     print("done resetting usb")
     #p = os.system("echo %s|sudo -S %s" % (sudoPassword, command))
 
 def gphotoReset():
     update_status(albumCode, "Resetting link to camera...")
-    out = check_output(["gphoto2","--reset"])
-    sleep(0.5)
+
+    try:
+        out = check_output(["gphoto2","--reset"])
+        sleep(0.5)
+    except:
+        print("exception in resetting link to camera")
     
     
 # normal output should have DSCF and JPG in it, and no mention of error.
@@ -47,14 +63,23 @@ def detectErrorNeedingReset(inString):
     return True
 
 def detectCamera():
-    out = check_output(["gphoto2", "--auto-detect"]).decode()
-    if ("Fuji" not in out):
-        update_status(albumCode,"Camera not detected. Is it powered on? Check, and try again.")
-        return False
-    return True
+    try:
+        out = check_output(["gphoto2", "--auto-detect"]).decode()
+        if ("Fuji" not in out):
+            update_status(albumCode,"Camera not detected. Is it powered on? Check, and try again.")
+            return False
+        return True
+    except:
+        print("exception in resetting camera")
+        return False 
 
 def takePicture():
+    global IS_DESKTOP_DEVELOPMENT
     print("taking picture...")
+
+    if (IS_DESKTOP_DEVELOPMENT):
+        return "sample-image.jpg"
+
     outString = "Error Error Error"
     
     try:

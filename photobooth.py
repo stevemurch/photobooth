@@ -61,11 +61,25 @@ from secret import *
 
 
 
-os.chdir("/home/pi/Desktop/photobooth")
+try: 
+    os.chdir("/home/pi/Desktop/photobooth")
+except:
+    print("Please run this from /home/pi/Desktop/photobooth")
+
 logging.basicConfig(level=logging.DEBUG, filename='photobooth.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 logging.info("Initializing")
 
 # Various globals
+
+GO_FULL_SCREEN = True
+is_exiting = False 
+
+# Some settings I use for development on desktop Windows 
+if (sys.platform == "win32"):
+    GO_FULL_SCREEN = False 
+
+
+
 sleepTime = 0.1
 photo_round = 0
 bPhotoButtonLit = False
@@ -77,6 +91,7 @@ current_kiosk_screen = 0
 GPIO.setmode(GPIO.BCM) # broadcom
 
 # PINS 
+
 LED_BCM_PIN = 27 # physical pin number 13.
 BUTTON_BCM_PIN = 22 # physical pin 15 -- This is the blue GO button
 SNAP_PHOTO_LED_BCM_PIN = 4 # physical pin 7 -- This is the LIGHT inside the blue GO button
@@ -187,6 +202,9 @@ def updatePhoto(filename):
     canvas.update()
     
 def updatePhotoFull(filename):
+    global is_exiting 
+    if (is_exiting==True):
+        return 
     logging.info("update photo to %s", filename)
     
     global photoProcessingState
@@ -212,6 +230,7 @@ def updatePhotoFull(filename):
     canvas.create_image(0,0, anchor=NW, image=imgFull) 
     canvas.grid(column=0,row=0,padx=(0,0), pady=(0,0))
     canvas.update()
+
     
 
 def flashLightOn():
@@ -233,12 +252,18 @@ def fullReset():
 
 def playChimeSound():
     # requires mpg321 install first
-    subprocess.Popen(["mpg321","-q", "chime.mp3"])
+    try:
+        subprocess.Popen(["mpg321","-q", "chime.mp3"])
+    except:
+        print("exception playing chime")
     return
 
 def playGetReadySound():
     # requires mpg321 install first
-    subprocess.Popen(["mpg321","-q","get-ready.mp3"])
+    try:
+        subprocess.Popen(["mpg321","-q","get-ready.mp3"])
+    except:
+        print("exception playing GET READY sound")
     return
 
 
@@ -271,7 +296,7 @@ def physical_button_pressed(event):
     if (not detectCamera()):
         logging.error("Cannot detect camera. Is it powered on?")
         update_status(albumCode,"Camera not detected. Is it powered on?")
-        updatePhotoFull("error-no-camera.png")
+        updatePhotoFull("assets/images/error-no-camera.png")
         return 
     
     if (photoProcessingState == 2):
@@ -283,7 +308,7 @@ def physical_button_pressed(event):
         countdown() 
 
 def show_upload_processing_graphic():
-    updatePhotoFull("see-your-photos.png")
+    updatePhotoFull("assets/images/see-your-photos.png")
     
 def show_got_it():
     updatePhotoFull("got-it.png")
@@ -291,6 +316,9 @@ def show_got_it():
 def update_and_show_photo_round():
     updatePhotoRound()
     showPhotoRound()
+
+def clearDisplay():
+    updatePhotoFull("assets/images/clearpixel.png")
 
 def countdown():
     global photo_round
@@ -302,7 +330,7 @@ def countdown():
     is_counting_down = True 
     logging.info("COUNTDOWN called")
     
-    updatePhotoFull("clearpixel.png")
+    clearDisplay()
     
     global bSnapPhotoButtonShouldFlash
     bSnapPhotoButtonShouldFlash = False
@@ -328,25 +356,24 @@ def countdown():
         sleep(0.2)
     
     if (photo_round==1):
-    
-        updatePhotoFull("5.png")
+        updatePhotoFull("assets/images/5.png")
         playChimeSound()
         sleep(0.5)
 
-        updatePhotoFull("4.png")
+        updatePhotoFull("assets/images/4.png")
         playChimeSound()
         sleep(0.5)
     
-    updatePhotoFull("3.png")
+    updatePhotoFull("assets/images/3.png")
     playChimeSound()
     sleep(0.5)
     
     #playChimeSound()
-    updatePhotoFull("2.png")
+    updatePhotoFull("assets/images/2.png")
     sleep(0.5)
     
     #playChimeSound()
-    updatePhotoFull("1.png")
+    updatePhotoFull("assets/images/1.png")
     sleep(0.3)
     
     # update the web album on popsee 
@@ -386,6 +413,10 @@ def countdown():
         print("sending file to server")
         print(fileNameOrError)
         updatePhotoFull(fileNameOrError)
+        print("SHOWING ["+fileNameOrError+"]")
+        sleep(1)
+        updatePhotoFull(fileNameOrError)
+
         logging.info("Uploading %s to popsee", fileNameOrError)
 
         upload_response = send_data_to_server_async(fileNameOrError)
@@ -398,7 +429,7 @@ def countdown():
         
     else:
         print("An error occurred Q1")
-        updatePhotoFull("sorry-error.png")
+        updatePhotoFull("assets/images/sorry-error.png")
         logging.error("An error occurred:%s", fileNameOrError)
         update_status(albumCode,"Error on last photo attempt. Trying again.")
         
@@ -441,6 +472,9 @@ def update_wait_indicator(ind):
         
 
 def show_wait_indicator():
+    global is_exiting
+    if (is_exiting):
+        return 
     global bShowWaitIndicator
     bShowWaitIndicator = True
     waitindicator.grid(column=1, row=0, pady=(0,0), padx=(0,0))
@@ -449,31 +483,27 @@ def show_wait_indicator():
 
     
 def hide_wait_indicator():
+    global is_exiting
+    if (is_exiting):
+        return 
     global bShowWaitIndicator
     bShowWaitIndicator = False
     waitindicator.grid_remove()
 
-def keypressed(event):
-    out_string = '{k!r}'.format(k = event.char)
-    print(out_string)
-    print(event.char)
-    if (event.char == 'x'): # escape
-        print("EXITING")
-        #GPIO.cleanup()
-        root.destroy()
 
 def handleKioskMode():
     global current_kiosk_screen 
     global is_kiosk_mode 
     if (is_kiosk_mode):
-        updatePhotoFull("photo-booth-home.jpg")
+        #updatePhotoFull("sample-image.jpg")
+        updatePhotoFull("assets/images/photo-booth-home.jpg")
     else:
         x=1
     root.after(10000, handleKioskMode)
 
 def showPhotoRound():
     global photo_round
-    fileToShow = str(photo_round)+"-of-3.png"
+    fileToShow = "assets/images/"+str(photo_round)+"-of-3.png"
     updatePhotoFull(fileToShow)
     
 
@@ -484,10 +514,19 @@ def updatePhotoRound():
     
     photo_round = photo_round + 1
     
-def exit(e):
-    root.destroy()
-    print("Goodbye...")
+def handleKeyPress(event):
+    if (is_exiting==False):
+        print(event.char)
+        if (event.char=="x"):
+            countdown()
+
+def cleanup_and_exit():
+    global is_exiting 
+    is_exiting = True 
     GPIO.cleanup()
+    print("Exiting now.")
+    root.destroy()
+    exit()
 
 
 # delete files
@@ -501,11 +540,14 @@ is_counting_down = False
 root = Tk()
 root.geometry('1440x960')
 root.title("Photo Booth")
-root.configure(background='blue', borderwidth=0, border=0, highlightthickness=0)
+root.configure(background='red', borderwidth=0, border=0, highlightthickness=0)
 
 # remove titlebar
 # root.overrideredirect(1)
-root.attributes("-fullscreen", True)
+
+
+if GO_FULL_SCREEN:
+    root.attributes("-fullscreen", True)
 
 update_status(albumCode,"")
 
@@ -523,13 +565,15 @@ root.after(1000, handlePhotoButtonFlash)
 # wait indicator
 maxFrames = 8
 bShowWaitIndicator = False 
-frames = [PhotoImage(file='sample.gif',format = 'gif -index %i' %(i)) for i in range(0, maxFrames)]
+frames = [PhotoImage(file='assets/images/wait-indicator.gif',format = 'gif -index %i' %(i)) for i in range(0, maxFrames)]
 waitindicator = Label(root, highlightthickness=0,borderwidth=0, highlightbackground='black')
 
 root.after(0, handleKioskMode)    
 
+root.bind('<Escape>', lambda e: cleanup_and_exit())
+
 # Any key press will exit the photo booth. 
-root.bind('<Any-KeyPress>', exit)
+root.bind('<Any-KeyPress>', handleKeyPress)
 
 updatePhotoRound()
 
