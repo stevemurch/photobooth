@@ -554,13 +554,12 @@ root.configure(background='red', borderwidth=0, border=0, highlightthickness=0)
 # remove titlebar
 # root.overrideredirect(1)
 
-
 if GO_FULL_SCREEN:
     root.attributes("-fullscreen", True)
 
 update_status(albumCode,"")
 
-canvas = Canvas(root, width = 1600, height = 1200, background='#000',highlightthickness=0, borderwidth=0, border=0) 
+canvas = Canvas(root, width = 1440, height = 960, background='#000',highlightthickness=0, borderwidth=0, border=0) 
 
 photoProcessingState = 2 # ready for input
 update_status(albumCode,"Ready")
@@ -585,6 +584,11 @@ root.bind('<Escape>', lambda e: cleanup_and_exit())
 root.bind('<Any-KeyPress>', handleKeyPress)
 
 updatePhotoRound()
+
+
+#label = Label(root, text="Hello xxxx world")
+#label.grid(column=0,row=0,padx=(0,0), pady=(0,0))
+
 
 # Run the main loop
 root.mainloop()
