@@ -67,6 +67,7 @@ except:
     print("Please run this from /home/pi/Desktop/photobooth")
 
 # get the home screen image
+# Comment out this line if you're not using the popsee server.
 get_current_config("")
 
 
