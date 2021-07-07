@@ -1,6 +1,5 @@
 root - INFO - Initializing
-urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
-urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
-urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): chatsparkapi.azurewebsites.net:443
-urllib3.connectionpool - DEBUG - https://chatsparkapi.azurewebsites.net:443 "POST /api/album/heather/status HTTP/1.1" 200 0
+urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): videokudosapi.azurewebsites.net:443
+urllib3.connectionpool - DEBUG - Starting new HTTPS connection (1): videokudosapi.azurewebsites.net:443
+root - INFO - update photo to homescreen-image.jpg
 root - INFO - update photo to homescreen-image.jpg

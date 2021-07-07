@@ -552,6 +552,8 @@ root.geometry('1440x960')
 root.title("Photo Booth")
 root.configure(background='red', borderwidth=0, border=0, highlightthickness=0)
 
+root.configure(cursor="none")
+
 # remove titlebar
 # root.overrideredirect(1)
 
